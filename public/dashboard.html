@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JobTracker</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #0d0d0d; font-family: Arial, sans-serif; color: #ccc; min-height: 100vh; }
+
+        /* NAV */
+        nav {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1rem 2.5rem;
+            border-bottom: 1px solid #1a1a1a;
+            position: sticky; top: 0; background: #0d0d0d; z-index: 50;
+        }
+        .logo { font-size: 18px; font-weight: bold; color: #e8e8e8; text-decoration: none; }
+        .logo span { color: #7f77dd; }
+        .nav-right { display: flex; align-items: center; gap: 16px; }
+        .nav-greeting { font-size: 13px; color: #444; }
+        .nav-greeting span { color: #7f77dd; }
+        .btn-logout {
+            background: transparent; border: 1px solid #2a2a2a;
+            color: #666; padding: 6px 16px; border-radius: 6px;
+            cursor: pointer; font-size: 13px; transition: all 0.2s;
+        }
+        .btn-logout:hover { border-color: #c46a6a; color: #c46a6a; }
+
+        .container { max-width: 980px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+        /* HERO */
+        .hero { margin-bottom: 2rem; }
+        .hero h1 { font-size: 26px; color: #e8e8e8; font-weight: bold; margin-bottom: 4px; }
+        .hero h1 span { color: #7f77dd; }
+        .hero p { font-size: 14px; color: #444; }
+
+        /* STATS */
+        .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 2rem; }
+        .stat {
+            background: #141414; border: 1px solid #1e1e1e;
+            border-radius: 10px; padding: 16px 20px;
+            cursor: default; transition: transform 0.2s, border-color 0.2s;
+            position: relative; overflow: hidden;
+        }
+        .stat::after {
+            content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+            height: 2px; background: var(--accent);
+            transform: scaleX(0); transition: transform 0.3s ease;
+        }
+        .stat:hover { transform: translateY(-2px); border-color: var(--accent); }
+        .stat:hover::after { transform: scaleX(1); }
+        .stat-label { font-size: 11px; color: #444; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 8px; }
+        .stat-value { font-size: 28px; font-weight: bold; color: var(--accent); }
+        .stat-total { --accent: #7f77dd; }
+        .stat-applied { --accent: #d4a847; }
+        .stat-interview { --accent: #6a9fd8; }
+        .stat-offer { --accent: #5aad6a; }
+
+        /* WEEKLY GOAL */
+        .weekly-goal-card {
+            background: #141414; border: 1px solid #1e1e1e;
+            border-radius: 10px; padding: 14px 20px;
+            margin-bottom: 1.25rem;
+            display: flex; align-items: center; gap: 20px;
+        }
+        .weekly-goal-label { font-size: 11px; color: #444; text-transform: uppercase; letter-spacing: 0.6px; white-space: nowrap; }
+        .weekly-goal-label strong { color: #ccc; font-size: 13px; }
+        .weekly-goal-bar-wrap { flex: 1; }
+        .weekly-goal-track { background: #1a1a1a; border-radius: 4px; height: 5px; overflow: hidden; }
+        .weekly-goal-fill { height: 100%; border-radius: 4px; width: 0%; transition: width 0.8s ease; }
+        .weekly-goal-edit { background: none; border: none; color: #7f77dd; font-size: 11px; cursor: pointer; padding: 0; text-decoration: underline dotted; white-space: nowrap; }
+
+        /* FORM */
+        .add-form {
+            background: #141414; border: 1px solid #1e1e1e;
+            border-radius: 10px; padding: 1.5rem; margin-bottom: 1.25rem;
+            transition: border-color 0.3s;
+        }
+        .add-form:focus-within { border-color: #7f77dd44; }
+        .form-label { font-size: 11px; color: #444; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 14px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr 150px 150px auto; gap: 10px; align-items: center; }
+        .form-row input, .form-row select, .form-row-2 input {
+            background: #0d0d0d; border: 1px solid #222; border-radius: 8px;
+            padding: 10px 14px; color: #ccc; font-size: 13px; width: 100%;
+            transition: border-color 0.2s; color-scheme: dark;
+            }
+            #editCompany, #editRole, #editStatus, #editDate, #editUrl, #editNotes, #editInterviewDate {
+                background: #0d0d0d; border: 1px solid #222; border-radius: 8px;
+                padding: 10px 14px; color: #ccc; font-size: 13px; width: 100%;
+                transition: border-color 0.2s; color-scheme: dark;
+            }
+            #editCompany:focus, #editRole:focus, #editStatus:focus, #editDate:focus,
+            #editUrl:focus, #editNotes:focus, #editInterviewDate:focus { outline: none; border-color: #7f77dd; }
+            input:-webkit-autofill, input:-webkit-autofill:focus {
+                -webkit-box-shadow: 0 0 0 1000px #0d0d0d inset;
+                -webkit-text-fill-color: #ccc;
+            }
+            .nav-link {
+            font-size: 13px; color: #888; text-decoration: none;
+            border: 1px solid #2a2a2a; padding: 6px 16px; border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .nav-link:hover { border-color: #7f77dd; color: #7f77dd; }
+
+        .form-row input:focus, .form-row select:focus { outline: none; border-color: #7f77dd; }
+        .form-row input::placeholder { color: #333; }
+
+        .form-row-2 { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-top: 10px; }
+
+        .btn-add {
+            background: #7f77dd; color: #fff; border: none;
+            border-radius: 8px; padding: 10px 22px; font-size: 13px;
+            cursor: pointer; white-space: nowrap; transition: background 0.2s, transform 0.1s;
+        }
+        .btn-add:hover { background: #6e66cc; }
+        .btn-add:active { transform: scale(0.97); }
+
+        /* SEARCH */
+        .search-wrap { margin-bottom: 1rem; position: relative; }
+        .search-wrap input {
+            width: 100%; background: #141414; border: 1px solid #1e1e1e;
+            border-radius: 8px; padding: 10px 16px 10px 40px;
+            color: #ccc; font-size: 14px; transition: border-color 0.2s;
+        }
+        .search-wrap input:focus { outline: none; border-color: #7f77dd; }
+        .search-wrap input::placeholder { color: #333; }
+        .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #333; font-size: 14px; }
+
+        /* TABLE */
+        .table-wrap { background: #141414; border: 1px solid #1e1e1e; border-radius: 10px; overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        th { padding: 12px 18px; text-align: left; font-size: 11px; color: #444; text-transform: uppercase; letter-spacing: 0.6px; border-bottom: 1px solid #1e1e1e; }
+        th:last-child { text-align: right; }
+        td:last-child { text-align: right; }
+        td { padding: 14px 18px; font-size: 13px; color: #888; border-bottom: 1px solid #181818; transition: background 0.15s; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #181818; color: #bbb; }
+        tr:hover .company-name { color: #fff; }
+        .company-name { color: #e0e0e0; font-weight: bold; }
+
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+        .badge-Applied { background: #2a2820; color: #d4a847; border: 1px solid #3d3520; }
+        .badge-Interview { background: #1e2535; color: #6a9fd8; border: 1px solid #253050; }
+        .badge-Offer { background: #1a2e20; color: #5aad6a; border: 1px solid #223828; }
+        .badge-Rejected { background: #2e1e1e; color: #c46a6a; border: 1px solid #3d2525; }
+
+        select.status-sel {
+            background: #111; border: 1px solid #222; border-radius: 6px;
+            padding: 5px 8px; color: #ccc; font-size: 12px;
+        }
+        select.status-sel:focus { outline: none; border-color: #7f77dd; }
+
+        .btn-delete {
+            background: transparent; border: 1px solid #222; border-radius: 6px;
+            padding: 5px 12px; color: #444; font-size: 12px;
+            cursor: pointer; margin-left: 8px; transition: all 0.2s;
+        }
+        .btn-delete:hover { border-color: #c46a6a; color: #c46a6a; background: #2e1e1e22; }
+
+        .btn-edit {
+            background: transparent; border: 1px solid #222; border-radius: 6px;
+            padding: 5px 12px; color: #444; font-size: 12px;
+            cursor: pointer; margin-left: 8px; transition: all 0.2s;
+        }
+        .btn-edit:hover { border-color: #7f77dd; color: #7f77dd; background: #7f77dd22; }
+
+        .btn-details {
+            background: transparent; border: 1px solid #222; border-radius: 6px;
+            padding: 5px 12px; color: #444; font-size: 12px;
+            cursor: pointer; margin-left: 8px; transition: all 0.2s;
+        }
+        .btn-details:hover { border-color: #5aad6a; color: #5aad6a; background: #1a2e2022; }
+
+        .empty { text-align: center; padding: 3rem; color: #333; font-size: 14px; }
+
+        .overlay {
+            display: none; position: fixed; inset: 0;
+            background: #000000aa; z-index: 100;
+            align-items: center; justify-content: center;
+        }
+        .overlay.show { display: flex; }
+        .popup {
+             background: #1a1a1a; border: 1px solid #333;
+             border-radius: 12px; padding: 2rem; width: 500px;
+             max-width: 90vw; max-height: 80vh; overflow-y: auto; text-align: center;
+        }
+        .popup h3 { color: #e8e8e8; font-size: 16px; margin-bottom: 8px; }
+        .popup p { color: #555; font-size: 13px; margin-bottom: 1.5rem; }
+        .popup-btns { display: flex; gap: 10px; justify-content: center; }
+        .btn-cancel { background: transparent; border: 1px solid #333; color: #666; padding: 8px 24px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+        .btn-cancel:hover { color: #aaa; border-color: #555; }
+        .btn-confirm { background: #c46a6a; border: none; color: #fff; padding: 8px 24px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+        .btn-confirm:hover { background: #b05555; }
+
+        /* MOBILE */
+        @media (max-width: 640px) {
+            nav { padding: 0.85rem 1.25rem; }
+            .nav-greeting { display: none; }
+            .container { padding: 1.25rem 1rem; }
+            .stats { grid-template-columns: repeat(2, 1fr); }
+            .stat-value { font-size: 22px; }
+            .form-row { grid-template-columns: 1fr 1fr; }
+            .form-row input[type="url"] { grid-column: 1 / -1; }
+            .form-row select { grid-column: 1; }
+            .form-row input[type="date"] { grid-column: 2; }
+            .form-row button { display: none; }
+            .form-row-2 { grid-template-columns: 1fr auto; }
+            .table-wrap { overflow-x: auto; }
+            th:nth-child(4), td:nth-child(4) { display: none; }
+            td { padding: 10px 12px; font-size: 12px; }
+            th { padding: 10px 12px; }
+            .btn-details { display: none; }
+            .weekly-goal-card { gap: 12px; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="/" class="logo">Job<span>Tracker</span></a>
+        <div class="nav-right">
+            <span class="nav-greeting">Hey, <span id="userGreeting"></span> !👋</span>
+            <a href="/calendar" class="nav-link">Calendar</a>
+            <button class="btn-logout" onclick="logout()">logout</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="hero">
+            <h1>Your <span>applications</span></h1>
+            <p>Track and manage every job you've applied to</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat stat-total">
+                <div class="stat-label">Total</div>
+                <div class="stat-value" id="statTotal">0</div>
+            </div>
+            <div class="stat stat-applied">
+                <div class="stat-label">Applied</div>
+                <div class="stat-value" id="statApplied">0</div>
+            </div>
+            <div class="stat stat-interview">
+                <div class="stat-label">Interview</div>
+                <div class="stat-value" id="statInterview">0</div>
+            </div>
+            <div class="stat stat-offer">
+                <div class="stat-label">Offers</div>
+                <div class="stat-value" id="statOffer">0</div>
+            </div>
+        </div>
+
+        <div class="weekly-goal-card">
+            <div class="weekly-goal-label">This week: <strong id="weeklyCount">0</strong> apps</div>
+            <div class="weekly-goal-bar-wrap">
+                <div class="weekly-goal-track"><div class="weekly-goal-fill" id="weeklyFill"></div></div>
+            </div>
+            <button class="weekly-goal-edit" id="weeklyGoalBtn" onclick="editWeeklyGoal()">Goal: 5</button>
+        </div>
+
+        <div class="add-form">
+            <div class="form-label">Add application</div>
+            <form id="addForm">
+                <div class="form-row">
+                    <input type="text" id="company" placeholder="company" required />
+                    <input type="text" id="role" placeholder="role" required />
+                    <select id="status">
+                        <option>Applied</option>
+                        <option>Interview</option>
+                        <option>Offer</option>
+                        <option>Rejected</option>
+                </select>
+                <input type="date" id="date" required />
+                <input type="url" id="url" placeholder="job url (optional)" />
+             </div>
+            <div class="form-row-2">
+                    <input type="text" id="notes" placeholder="notes (optional)" />
+                    <button type="submit" class="btn-add">+ Add</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="search-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" placeholder="search by company, role, status or date..." oninput="filterTable()" />
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Company</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="applicationsList"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="overlay" id="deleteOverlay">
+        <div class="popup">
+            <h3>Delete application?</h3>
+            <p>This action cannot be undone.</p>
+            <div class="popup-btns">
+                <button class="btn-cancel" onclick="closePopup()">Cancel</button>
+                <button class="btn-confirm" id="confirmDelete">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="editOverlay">
+        <div class="popup">
+            <h3>Edit application</h3>
+            <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:1.5rem;">
+                 <input type="text" id="editCompany" placeholder="company" />
+                 <input type="text" id="editRole" placeholder="role" />
+                 <select id="editStatus">
+                     <option>Applied</option>
+                     <option>Interview</option>
+                    <option>Offer</option>
+                     <option>Rejected</option>
+                </select>
+                 <input type="date" id="editDate" />
+                <input type="url" id="editUrl" placeholder="job url (optional)" />
+                <input type="text" id="editNotes" placeholder="notes (optional)" />
+                <div id="interviewDateWrap" style="display:none;">
+                    <label style="font-size:11px; color:#6a9fd8; text-transform:uppercase; letter-spacing:0.6px; display:block; margin-bottom:6px;">Interview date</label>
+                    <input type="date" id="editInterviewDate" style="border-color:#253050;" />
+                </div>
+                </div>
+                <div class="popup-btns">
+                <button class="btn-cancel" onclick="closeEditPopup()">Cancel</button>
+                <button class="btn-confirm" style="background:#7f77dd" onclick="saveEdit()">Save</button>
+        </div>
+    </div>
+</div>
+
+<div class="overlay" id="detailsOverlay">
+    <div class="popup">
+        <h3>Application Details</h3>
+        <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:1.5rem; text-align:left;">
+            <p style="color:#888; font-size:13px;">URL: <a id="detailsUrl" href="#" target="_blank" style="color:#7f77dd;"></a></p>
+            <p style="color:#888; font-size:13px;">Notes:</p>
+            <p id="detailsNotes" style="color:#ccc; font-size:13px; white-space:pre-wrap;"></p>
+        </div>
+        <div class="popup-btns">
+            <button class="btn-cancel" onclick="closeDetailsModal()">close</button>
+        </div>
+    </div>
+</div>
+
+    <script src="app.js"></script>
+</body>
+</html>
