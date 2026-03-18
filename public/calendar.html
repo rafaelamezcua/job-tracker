@@ -6,7 +6,7 @@
     <title>JobTracker — Calendar</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: #0d0d0d; font-family: Arial, sans-serif; color: #ccc; min-height: 100vh; }
+        body { background: #0d0d0d; font-family: Arial, sans-serif; color: #ccc; min-height: 100vh; opacity: 0; }
 
         nav {
             display: flex; justify-content: space-between; align-items: center;
@@ -110,15 +110,26 @@
             cursor: default;
         }
         .day-event.applied { background: #2a2820; color: #d4a847; border-left: 2px solid #d4a847; }
-        .day-event.interview { background: #1e2535; color: #6a9fd8; border-left: 2px solid #6a9fd8; }
+        .day-event.interview { background: #1e2535; color: #6a9fd8; border-left: 2px solid #6a9fd8; animation: interviewGlow 2.5s ease-in-out infinite; }
+        @keyframes interviewGlow {
+            0%, 100% { box-shadow: none; }
+            50% { box-shadow: 0 0 7px 1px #6a9fd844; }
+        }
 
         /* DAY DETAIL OVERLAY */
         .overlay {
-            display: none; position: fixed; inset: 0;
+            display: flex; position: fixed; inset: 0;
             background: #000000aa; z-index: 100;
             align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.22s ease;
         }
-        .overlay.show { display: flex; }
+        .overlay.show { opacity: 1; pointer-events: auto; }
+        .overlay .popup {
+            transform: scale(0.92) translateY(10px);
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .overlay.show .popup { transform: scale(1) translateY(0); }
         .popup {
             background: #1a1a1a; border: 1px solid #333;
             border-radius: 12px; padding: 2rem; width: 420px;
@@ -238,6 +249,7 @@
         </a>
     </nav>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
     <script src="calendar.js"></script>
 </body>
 </html>

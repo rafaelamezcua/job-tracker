@@ -6,14 +6,34 @@ document.getElementById('userGreeting').textContent = userName || 'there';
 let currentDate = new Date();
 let allApplications = [];
 
+// ── Page fade-in + navigation fade-out ───────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    anime({ targets: 'body', opacity: [0, 1], duration: 400, easing: 'easeOutQuad' });
+
+    document.querySelectorAll('a[href]').forEach(a => {
+        const href = a.getAttribute('href');
+        if (href && href.startsWith('/') && !href.includes('#')) {
+            a.addEventListener('click', e => {
+                e.preventDefault();
+                anime({
+                    targets: 'body', opacity: 0, duration: 250, easing: 'easeInQuad',
+                    complete: () => { window.location.href = href; }
+                });
+            });
+        }
+    });
+});
+
+// ── Load ──────────────────────────────────────────────────────────
 async function loadApplications() {
     const res = await fetch('/applications', { headers: { 'authorization': token } });
     const data = await res.json();
     allApplications = Array.isArray(data) ? data : [];
     renderPrompts();
-    renderCalendar();
+    renderCalendar(null);
 }
 
+// ── Interview prompts ─────────────────────────────────────────────
 function renderPrompts() {
     const needsDate = allApplications.filter(a => a.status === 'Interview' && !a.interview_date);
     const section = document.getElementById('promptsSection');
@@ -26,6 +46,8 @@ function renderPrompts() {
     needsDate.forEach(app => {
         const card = document.createElement('div');
         card.className = 'prompt-card';
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(8px)';
         card.innerHTML = `
             <div class="prompt-info">
                 <span>${app.company}</span> — ${app.role}
@@ -37,13 +59,25 @@ function renderPrompts() {
         `;
         list.appendChild(card);
     });
+
+    anime({
+        targets: list.querySelectorAll('.prompt-card'),
+        opacity: [0, 1],
+        translateY: [8, 0],
+        delay: anime.stagger(60),
+        duration: 300,
+        easing: 'easeOutQuad'
+    });
 }
 
 async function setInterviewDate(id) {
     const dateInput = document.getElementById(`prompt-date-${id}`);
     const interview_date = dateInput.value;
-    if (!interview_date) { dateInput.style.borderColor = '#c46a6a'; return; }
-
+    if (!interview_date) {
+        dateInput.style.borderColor = '#c46a6a';
+        anime({ targets: dateInput, translateX: [0, -5, 5, -3, 3, 0], duration: 350, easing: 'easeInOutSine' });
+        return;
+    }
     const app = allApplications.find(a => a.id === id);
     await fetch(`/applications/${id}`, {
         method: 'PUT',
@@ -61,7 +95,8 @@ async function setInterviewDate(id) {
     loadApplications();
 }
 
-function renderCalendar() {
+// ── Calendar render ───────────────────────────────────────────────
+function renderCalendar(direction) {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
 
@@ -73,7 +108,6 @@ function renderCalendar() {
     const daysInPrevMonth = new Date(year, month, 0).getDate();
     const today = new Date();
 
-    // Build event map: dateStr -> array of events
     const eventMap = {};
     allApplications.forEach(app => {
         if (app.date) {
@@ -87,9 +121,27 @@ function renderCalendar() {
     });
 
     const grid = document.getElementById('calDays');
+
+    if (direction) {
+        const exitX = direction === 'next' ? -50 : 50;
+        const enterX = direction === 'next' ? 50 : -50;
+        anime({
+            targets: grid,
+            opacity: [1, 0],
+            translateX: [0, exitX],
+            duration: 170,
+            easing: 'easeInQuad',
+            complete: () => buildGrid(grid, { firstDay, daysInMonth, daysInPrevMonth, today, eventMap, year, month, enterX })
+        });
+    } else {
+        buildGrid(grid, { firstDay, daysInMonth, daysInPrevMonth, today, eventMap, year, month, enterX: null });
+    }
+}
+
+function buildGrid(grid, { firstDay, daysInMonth, daysInPrevMonth, today, eventMap, year, month, enterX }) {
     grid.innerHTML = '';
 
-    // Prev month padding days
+    // Prev month padding
     for (let i = firstDay - 1; i >= 0; i--) {
         const day = document.createElement('div');
         day.className = 'cal-day other-month';
@@ -118,7 +170,7 @@ function renderCalendar() {
         grid.appendChild(day);
     }
 
-    // Next month padding days
+    // Next month padding
     const totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
     for (let d = 1; d <= totalCells - firstDay - daysInMonth; d++) {
         const day = document.createElement('div');
@@ -126,8 +178,67 @@ function renderCalendar() {
         day.innerHTML = `<div class="day-num">${d}</div>`;
         grid.appendChild(day);
     }
+
+    if (enterX !== null) {
+        // Month slide-in
+        anime({
+            targets: grid,
+            opacity: [0, 1],
+            translateX: [enterX, 0],
+            duration: 220,
+            easing: 'easeOutQuad'
+        });
+    } else {
+        // Initial load: stagger current-month cells
+        const days = grid.querySelectorAll('.cal-day:not(.other-month)');
+        days.forEach(d => { d.style.opacity = '0'; });
+        anime({
+            targets: days,
+            opacity: [0, 1],
+            delay: anime.stagger(12),
+            duration: 200,
+            easing: 'easeOutQuad'
+        });
+    }
+
+    // Event chips pop-in
+    const chips = grid.querySelectorAll('.day-event');
+    if (chips.length) {
+        chips.forEach(c => { c.style.opacity = '0'; c.style.transform = 'scaleY(0.4)'; });
+        anime({
+            targets: chips,
+            opacity: [0, 1],
+            scaleY: [0.4, 1],
+            delay: anime.stagger(18, { start: 150 }),
+            duration: 220,
+            easing: 'easeOutBack'
+        });
+    }
 }
 
+// ── Navigation ────────────────────────────────────────────────────
+function prevMonth() {
+    currentDate.setMonth(currentDate.getMonth() - 1);
+    renderCalendar('prev');
+}
+
+function nextMonth() {
+    currentDate.setMonth(currentDate.getMonth() + 1);
+    renderCalendar('next');
+}
+
+function goToToday() {
+    currentDate = new Date();
+    anime({
+        targets: document.getElementById('calTitle'),
+        scale: [1, 1.1, 1],
+        duration: 420,
+        easing: 'easeOutElastic(1, 0.5)'
+    });
+    renderCalendar(null);
+}
+
+// ── Day detail overlay ────────────────────────────────────────────
 function openDayDetail(dateStr, events) {
     const date = new Date(dateStr + 'T00:00:00');
     document.getElementById('dayOverlayTitle').textContent =
@@ -142,21 +253,6 @@ function openDayDetail(dateStr, events) {
     `).join('');
 
     document.getElementById('dayOverlay').classList.add('show');
-}
-
-function prevMonth() {
-    currentDate.setMonth(currentDate.getMonth() - 1);
-    renderCalendar();
-}
-
-function nextMonth() {
-    currentDate.setMonth(currentDate.getMonth() + 1);
-    renderCalendar();
-}
-
-function goToToday() {
-    currentDate = new Date();
-    renderCalendar();
 }
 
 function logout() {

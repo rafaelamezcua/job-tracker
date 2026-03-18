@@ -5,17 +5,48 @@ document.getElementById('userGreeting').textContent = userName || 'there';
 if (!token) window.location.href = '/login';
 
 let allApplications = [];
+let lastAddedId = null;
+let pendingDeleteId = null;
+let pendingDeleteRow = null;
 
-async function loadApplications() {
-    const res = await fetch('/applications', {
-        headers: { 'authorization': token }
+// ── Page fade-in + navigation fade-out ───────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    anime({ targets: 'body', opacity: [0, 1], duration: 400, easing: 'easeOutQuad' });
+
+    document.querySelectorAll('a[href]').forEach(a => {
+        const href = a.getAttribute('href');
+        if (href && href.startsWith('/') && !href.includes('#')) {
+            a.addEventListener('click', e => {
+                e.preventDefault();
+                anime({
+                    targets: 'body', opacity: 0, duration: 250, easing: 'easeInQuad',
+                    complete: () => { window.location.href = href; }
+                });
+            });
+        }
     });
+
+    // Shake on invalid required field
+    ['company', 'role', 'date'].forEach(id => {
+        document.getElementById(id).addEventListener('invalid', e => {
+            e.preventDefault();
+            e.target.style.borderColor = '#c46a6a';
+            anime({ targets: e.target, translateX: [0, -6, 6, -4, 4, 0], duration: 380, easing: 'easeInOutSine' });
+            setTimeout(() => { e.target.style.borderColor = ''; }, 1200);
+        });
+    });
+});
+
+// ── Load ──────────────────────────────────────────────────────────
+async function loadApplications() {
+    const res = await fetch('/applications', { headers: { 'authorization': token } });
     const data = await res.json();
     allApplications = Array.isArray(data) ? data : [];
     updateStats();
     renderTable(allApplications);
 }
 
+// ── Weekly goal ───────────────────────────────────────────────────
 let weeklyGoal = parseInt(localStorage.getItem('weeklyGoal') || '5');
 
 function updateWeeklyGoal() {
@@ -29,7 +60,7 @@ function updateWeeklyGoal() {
     document.getElementById('weeklyGoalBtn').textContent = `Goal: ${weeklyGoal}`;
     const fill = document.getElementById('weeklyFill');
     fill.style.background = pct >= 100 ? '#5aad6a' : pct >= 60 ? '#d4a847' : '#7f77dd';
-    fill.style.width = pct + '%';
+    anime({ targets: fill, width: pct + '%', duration: 900, easing: 'easeOutQuart' });
 }
 
 function editWeeklyGoal() {
@@ -42,15 +73,29 @@ function editWeeklyGoal() {
     }
 }
 
+// ── Stats count-up ────────────────────────────────────────────────
 function updateStats() {
-    document.getElementById('statTotal').textContent = allApplications.length;
-    document.getElementById('statApplied').textContent = allApplications.filter(a => a.status === 'Applied').length;
-    document.getElementById('statInterview').textContent = allApplications.filter(a => a.status === 'Interview').length;
-    document.getElementById('statOffer').textContent = allApplications.filter(a => a.status === 'Offer').length;
-    document.getElementById('statRejected').textContent = allApplications.filter(a => a.status === 'Rejected').length;
+    const counts = {
+        statTotal:     allApplications.length,
+        statApplied:   allApplications.filter(a => a.status === 'Applied').length,
+        statInterview: allApplications.filter(a => a.status === 'Interview').length,
+        statOffer:     allApplications.filter(a => a.status === 'Offer').length,
+        statRejected:  allApplications.filter(a => a.status === 'Rejected').length,
+    };
+    Object.entries(counts).forEach(([id, target]) => {
+        const el = document.getElementById(id);
+        const from = parseInt(el.textContent) || 0;
+        if (from === target) return;
+        const obj = { n: from };
+        anime({
+            targets: obj, n: target, round: 1, duration: 500, easing: 'easeOutQuad',
+            update() { el.textContent = obj.n; }
+        });
+    });
     updateWeeklyGoal();
 }
 
+// ── Date filter ───────────────────────────────────────────────────
 let activeDatePreset = 'all';
 let customDateFrom = null;
 let customDateTo = null;
@@ -61,9 +106,12 @@ function setPreset(preset) {
     customRangeActive = false;
     customDateFrom = null;
     customDateTo = null;
-    document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.filter-pill').forEach(p => {
-        if (p.getAttribute('onclick') === `setPreset('${preset}')`) p.classList.add('active');
+        p.classList.remove('active');
+        if (p.getAttribute('onclick') === `setPreset('${preset}')`) {
+            p.classList.add('active');
+            anime({ targets: p, scale: [1, 1.15, 1], duration: 380, easing: 'easeOutElastic(1, 0.5)' });
+        }
     });
     document.getElementById('customRangeWrap').classList.remove('show');
     document.getElementById('customRangeToggle').classList.remove('active');
@@ -108,13 +156,11 @@ function getDateRange(preset) {
         return { from: monday, to: today };
     }
     if (preset === '7days') {
-        const from = new Date(today);
-        from.setDate(today.getDate() - 6);
+        const from = new Date(today); from.setDate(today.getDate() - 6);
         return { from, to: today };
     }
     if (preset === '30days') {
-        const from = new Date(today);
-        from.setDate(today.getDate() - 29);
+        const from = new Date(today); from.setDate(today.getDate() - 29);
         return { from, to: today };
     }
     if (preset === 'month') {
@@ -150,7 +196,6 @@ function filterTable() {
             });
         }
     }
-
     renderTable(filtered);
 }
 
@@ -160,6 +205,7 @@ function formatDate(dateStr) {
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
+// ── Render table ──────────────────────────────────────────────────
 function renderTable(applications) {
     const list = document.getElementById('applicationsList');
     list.innerHTML = '';
@@ -182,6 +228,7 @@ function renderTable(applications) {
         return;
     }
 
+    const rows = [];
     applications.forEach(app => {
         const tagChips = app.tags
             ? app.tags.split(',').map(t => t.trim()).filter(Boolean)
@@ -189,6 +236,8 @@ function renderTable(applications) {
             : '<span style="color:#2a2a2a; font-size:11px;">—</span>';
 
         const row = document.createElement('tr');
+        row.style.opacity = '0';
+        row.style.transform = 'translateY(6px)';
         row.innerHTML = `
             <td class="company-name">${app.url ? `<a href="${app.url}" target="_blank" style="color:inherit; text-decoration:none;">${app.company}</a>` : app.company}</td>
             <td>${app.role}</td>
@@ -204,10 +253,46 @@ function renderTable(applications) {
             </td>
         `;
         row.querySelector('.btn-details').addEventListener('click', () => openDetailsModal(app));
-        row.querySelector('.btn-delete').addEventListener('click', () => deleteApplication(app.id));
+        row.querySelector('.btn-delete').addEventListener('click', () => deleteApplication(app.id, row));
         row.querySelector('.btn-edit').addEventListener('click', () => openEditModal(app));
         list.appendChild(row);
+        rows.push(row);
     });
+
+    // Stagger rows in
+    anime({
+        targets: rows,
+        opacity: [0, 1],
+        translateY: [6, 0],
+        delay: anime.stagger(35),
+        duration: 280,
+        easing: 'easeOutQuad'
+    });
+
+    // Flash newly added row
+    if (lastAddedId !== null) {
+        const matchIdx = applications.findIndex(a => a.id === lastAddedId);
+        if (matchIdx !== -1) {
+            setTimeout(() => {
+                rows[matchIdx].style.animation = 'flashGreen 1s ease forwards';
+            }, matchIdx * 35 + 320);
+        }
+        lastAddedId = null;
+    }
+
+    // Tag chip pop-in
+    const chips = list.querySelectorAll('.tag-chip');
+    if (chips.length) {
+        chips.forEach(c => { c.style.opacity = '0'; c.style.transform = 'scale(0.65)'; });
+        anime({
+            targets: chips,
+            opacity: [0, 1],
+            scale: [0.65, 1],
+            delay: anime.stagger(25, { start: 120 }),
+            duration: 240,
+            easing: 'easeOutBack'
+        });
+    }
 }
 
 function filterByTag(tag) {
@@ -233,40 +318,48 @@ function updateActiveFilterBanner(query) {
     }
 }
 
-async function updateStatus(id, newStatus) {
-    await fetch(`/applications/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'authorization': token },
-        body: JSON.stringify({ status: newStatus })
-    });
-    loadApplications();
-}
-
-let pendingDeleteId = null;
-
-function deleteApplication(id) {
+// ── Delete ────────────────────────────────────────────────────────
+function deleteApplication(id, rowEl) {
     pendingDeleteId = id;
+    pendingDeleteRow = rowEl;
     document.getElementById('deleteOverlay').classList.add('show');
 }
 
 function closePopup() {
     pendingDeleteId = null;
+    pendingDeleteRow = null;
     document.getElementById('deleteOverlay').classList.remove('show');
 }
 
 document.getElementById('confirmDelete').addEventListener('click', async () => {
     if (!pendingDeleteId) return;
-    await fetch(`/applications/${pendingDeleteId}`, {
+    document.getElementById('deleteOverlay').classList.remove('show');
+    const rowToDelete = pendingDeleteRow;
+    const idToDelete = pendingDeleteId;
+    pendingDeleteId = null;
+    pendingDeleteRow = null;
+
+    if (rowToDelete) {
+        await anime({
+            targets: rowToDelete,
+            opacity: [1, 0],
+            translateX: [0, -24],
+            duration: 260,
+            easing: 'easeInQuad'
+        }).finished;
+    }
+
+    await fetch(`/applications/${idToDelete}`, {
         method: 'DELETE',
         headers: { 'authorization': token }
     });
-    closePopup();
     loadApplications();
 });
 
+// ── Add form ──────────────────────────────────────────────────────
 document.getElementById('addForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    await fetch('/applications', {
+    const res = await fetch('/applications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'authorization': token },
         body: JSON.stringify({
@@ -279,6 +372,8 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
             tags: document.getElementById('tags').value
         })
     });
+    const data = await res.json();
+    lastAddedId = data.id || null;
     e.target.reset();
     loadApplications();
 });
@@ -288,7 +383,8 @@ function logout() {
     window.location.href = '/login';
 }
 
-let editing, Id = null;
+// ── Edit modal ────────────────────────────────────────────────────
+let editingId = null;
 
 function openEditModal(app) {
     editingId = app.id;
@@ -304,7 +400,7 @@ function openEditModal(app) {
     document.getElementById('editOverlay').classList.add('show');
 }
 
-document.getElementById('editStatus').addEventListener('change', function() {
+document.getElementById('editStatus').addEventListener('change', function () {
     document.getElementById('interviewDateWrap').style.display = this.value === 'Interview' ? 'block' : 'none';
 });
 
@@ -334,6 +430,7 @@ async function saveEdit() {
     loadApplications();
 }
 
+// ── Details modal ─────────────────────────────────────────────────
 function openDetailsModal(app) {
     const urlEl = document.getElementById('detailsUrl');
     urlEl.href = app.url || '#';
