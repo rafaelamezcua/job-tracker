@@ -36,7 +36,7 @@
         .hero p { font-size: 14px; color: #444; }
 
         /* STATS */
-        .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 2rem; }
+        .stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 2rem; }
         .stat {
             background: #141414; border: 1px solid #1e1e1e;
             border-radius: 10px; padding: 16px 20px;
@@ -56,6 +56,7 @@
         .stat-applied { --accent: #d4a847; }
         .stat-interview { --accent: #6a9fd8; }
         .stat-offer { --accent: #5aad6a; }
+        .stat-rejected { --accent: #c46a6a; }
 
         /* WEEKLY GOAL */
         .weekly-goal-card {
@@ -85,13 +86,13 @@
             padding: 10px 14px; color: #ccc; font-size: 13px; width: 100%;
             transition: border-color 0.2s; color-scheme: dark;
             }
-            #editCompany, #editRole, #editStatus, #editDate, #editUrl, #editNotes, #editInterviewDate {
+            #editCompany, #editRole, #editStatus, #editDate, #editUrl, #editNotes, #editInterviewDate, #editTags {
                 background: #0d0d0d; border: 1px solid #222; border-radius: 8px;
                 padding: 10px 14px; color: #ccc; font-size: 13px; width: 100%;
                 transition: border-color 0.2s; color-scheme: dark;
             }
             #editCompany:focus, #editRole:focus, #editStatus:focus, #editDate:focus,
-            #editUrl:focus, #editNotes:focus, #editInterviewDate:focus { outline: none; border-color: #7f77dd; }
+            #editUrl:focus, #editNotes:focus, #editInterviewDate:focus, #editTags:focus { outline: none; border-color: #7f77dd; }
             input:-webkit-autofill, input:-webkit-autofill:focus {
                 -webkit-box-shadow: 0 0 0 1000px #0d0d0d inset;
                 -webkit-text-fill-color: #ccc;
@@ -106,7 +107,7 @@
         .form-row input:focus, .form-row select:focus { outline: none; border-color: #7f77dd; }
         .form-row input::placeholder { color: #333; }
 
-        .form-row-2 { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-top: 10px; }
+        .form-row-2 { display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; margin-top: 10px; }
 
         .btn-add {
             background: #7f77dd; color: #fff; border: none;
@@ -117,7 +118,7 @@
         .btn-add:active { transform: scale(0.97); }
 
         /* SEARCH */
-        .search-wrap { margin-bottom: 1rem; position: relative; }
+        .search-wrap { margin-bottom: 0.6rem; position: relative; }
         .search-wrap input {
             width: 100%; background: #141414; border: 1px solid #1e1e1e;
             border-radius: 8px; padding: 10px 16px 10px 40px;
@@ -126,6 +127,43 @@
         .search-wrap input:focus { outline: none; border-color: #7f77dd; }
         .search-wrap input::placeholder { color: #333; }
         .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #333; font-size: 14px; }
+
+        /* DATE FILTER */
+        .filter-bar {
+            display: flex; align-items: center; gap: 6px;
+            margin-bottom: 0.6rem; flex-wrap: wrap;
+        }
+        .filter-label { font-size: 11px; color: #444; text-transform: uppercase; letter-spacing: 0.6px; margin-right: 2px; white-space: nowrap; }
+        .filter-pill {
+            background: #141414; border: 1px solid #1e1e1e;
+            border-radius: 20px; padding: 4px 13px;
+            font-size: 12px; color: #555; cursor: pointer;
+            transition: all 0.2s; white-space: nowrap;
+        }
+        .filter-pill:hover { border-color: #7f77dd; color: #7f77dd; }
+        .filter-pill.active { background: #7f77dd22; border-color: #7f77dd; color: #7f77dd; }
+        .custom-range-wrap {
+            display: none; align-items: center; gap: 8px;
+            margin-bottom: 0.75rem; flex-wrap: wrap;
+        }
+        .custom-range-wrap.show { display: flex; }
+        .custom-range-label { font-size: 12px; color: #444; }
+        .custom-range-wrap input[type="date"] {
+            background: #141414; border: 1px solid #1e1e1e;
+            border-radius: 8px; padding: 6px 12px;
+            color: #ccc; font-size: 12px; color-scheme: dark; transition: border-color 0.2s;
+        }
+        .custom-range-wrap input[type="date"]:focus { outline: none; border-color: #7f77dd; }
+        .btn-apply-range {
+            background: #7f77dd; border: none; color: #fff;
+            border-radius: 6px; padding: 6px 14px; font-size: 12px; cursor: pointer; transition: background 0.2s;
+        }
+        .btn-apply-range:hover { background: #6e66cc; }
+        .btn-clear-range {
+            background: transparent; border: 1px solid #222; color: #555;
+            border-radius: 6px; padding: 6px 14px; font-size: 12px; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-clear-range:hover { color: #aaa; border-color: #555; }
 
         /* TABLE */
         .table-wrap { background: #141414; border: 1px solid #1e1e1e; border-radius: 10px; overflow: hidden; }
@@ -173,6 +211,54 @@
         .btn-details:hover { border-color: #5aad6a; color: #5aad6a; background: #1a2e2022; }
 
         .empty { text-align: center; padding: 3rem; color: #333; font-size: 14px; }
+        .empty a { color: #7f77dd; cursor: pointer; text-decoration: none; }
+        .empty a:hover { text-decoration: underline; }
+
+        /* TAGS */
+        .tag-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+        .tag-chip {
+            display: inline-block; padding: 3px 10px; border-radius: 10px;
+            font-size: 11px; color: #a09aee; background: #7f77dd28;
+            border: 1px solid #7f77dd55; cursor: pointer; transition: all 0.2s;
+            white-space: nowrap; font-weight: 500; text-transform: capitalize;
+        }
+        .tag-chip:hover { background: #7f77dd44; border-color: #7f77dd88; color: #c0baff; }
+
+        /* ACTIVE FILTER BANNER */
+        .active-filter-bar {
+            display: none; align-items: center; gap: 8px;
+            margin-bottom: 0.5rem; flex-wrap: wrap;
+        }
+        .active-filter-bar.show { display: flex; }
+        .active-filter-tag {
+            display: inline-flex; align-items: center; gap: 5px;
+            background: #7f77dd22; border: 1px solid #7f77dd55;
+            border-radius: 20px; padding: 3px 10px;
+            font-size: 12px; color: #7f77dd;
+        }
+        .active-filter-clear {
+            background: none; border: none; color: #7f77dd; cursor: pointer;
+            font-size: 14px; line-height: 1; padding: 0; opacity: 0.7;
+        }
+        .active-filter-clear:hover { opacity: 1; }
+        .active-filter-label { font-size: 12px; color: #444; }
+
+        /* RESULT COUNT */
+        .result-count { font-size: 12px; color: #444; margin-bottom: 0.5rem; min-height: 18px; }
+
+        /* BOTTOM NAV (mobile only) */
+        .bottom-nav {
+            display: none; position: fixed; bottom: 0; left: 0; right: 0;
+            background: #141414; border-top: 1px solid #1e1e1e; z-index: 50;
+            justify-content: space-around; padding: 8px 0 12px;
+        }
+        .bottom-nav-item {
+            display: flex; flex-direction: column; align-items: center; gap: 3px;
+            color: #444; font-size: 10px; text-decoration: none;
+            padding: 4px 24px; transition: color 0.2s; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .bottom-nav-item svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+        .bottom-nav-item.active { color: #7f77dd; }
 
         .overlay {
             display: none; position: fixed; inset: 0;
@@ -197,21 +283,29 @@
         @media (max-width: 640px) {
             nav { padding: 0.85rem 1.25rem; }
             .nav-greeting { display: none; }
-            .container { padding: 1.25rem 1rem; }
+            .container { padding: 1.25rem 1rem; padding-bottom: 80px; }
             .stats { grid-template-columns: repeat(2, 1fr); }
-            .stat-value { font-size: 22px; }
+            .stat:nth-child(5) { grid-column: 1 / -1; }
+            .stat-value { font-size: 20px; }
+            .stat { padding: 12px 14px; }
             .form-row { grid-template-columns: 1fr 1fr; }
             .form-row input[type="url"] { grid-column: 1 / -1; }
             .form-row select { grid-column: 1; }
             .form-row input[type="date"] { grid-column: 2; }
             .form-row button { display: none; }
-            .form-row-2 { grid-template-columns: 1fr auto; }
+            .form-row-2 { grid-template-columns: 1fr; }
+            .form-row-2 .btn-add { width: 100%; }
             .table-wrap { overflow-x: auto; }
-            th:nth-child(4), td:nth-child(4) { display: none; }
+            th:nth-child(3), td:nth-child(3),
+            th:nth-child(5), td:nth-child(5) { display: none; }
             td { padding: 10px 12px; font-size: 12px; }
             th { padding: 10px 12px; }
             .btn-details { display: none; }
             .weekly-goal-card { gap: 12px; }
+            .filter-bar { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; scrollbar-width: none; }
+            .filter-bar::-webkit-scrollbar { display: none; }
+            .custom-range-wrap { flex-direction: column; align-items: flex-start; gap: 6px; }
+            .bottom-nav { display: flex; }
         }
     </style>
 </head>
@@ -249,6 +343,10 @@
                 <div class="stat-label">Offers</div>
                 <div class="stat-value" id="statOffer">0</div>
             </div>
+            <div class="stat stat-rejected">
+                <div class="stat-label">Rejected</div>
+                <div class="stat-value" id="statRejected">0</div>
+            </div>
         </div>
 
         <div class="weekly-goal-card">
@@ -276,6 +374,7 @@
              </div>
             <div class="form-row-2">
                     <input type="text" id="notes" placeholder="notes (optional)" />
+                    <input type="text" id="tags" placeholder="tags: remote, startup... (optional)" />
                     <button type="submit" class="btn-add">+ Add</button>
                 </div>
             </form>
@@ -286,12 +385,43 @@
             <input type="text" id="searchInput" placeholder="search by company, role, status or date..." oninput="filterTable()" />
         </div>
 
+        <div class="filter-bar">
+            <span class="filter-label">Filter:</span>
+            <button class="filter-pill active" onclick="setPreset('all')">All</button>
+            <button class="filter-pill" onclick="setPreset('today')">Today</button>
+            <button class="filter-pill" onclick="setPreset('week')">This Week</button>
+            <button class="filter-pill" onclick="setPreset('7days')">Last 7 Days</button>
+            <button class="filter-pill" onclick="setPreset('30days')">Last 30 Days</button>
+            <button class="filter-pill" onclick="setPreset('month')">This Month</button>
+            <button class="filter-pill" id="customRangeToggle" onclick="toggleCustomRange()">Custom Range ▾</button>
+        </div>
+
+        <div class="custom-range-wrap" id="customRangeWrap">
+            <span class="custom-range-label">From</span>
+            <input type="date" id="filterFrom" />
+            <span class="custom-range-label">to</span>
+            <input type="date" id="filterTo" />
+            <button class="btn-apply-range" onclick="applyCustomRange()">Apply</button>
+            <button class="btn-clear-range" onclick="clearCustomRange()">Clear</button>
+        </div>
+
+        <div class="active-filter-bar" id="activeFilterBar">
+            <span class="active-filter-label">Filtered by:</span>
+            <span class="active-filter-tag" id="activeFilterTag">
+                <span id="activeFilterText"></span>
+                <button class="active-filter-clear" onclick="clearAllFilters()" title="Clear filter">×</button>
+            </span>
+        </div>
+
+        <div id="resultCount" class="result-count"></div>
+
         <div class="table-wrap">
             <table>
                 <thead>
                     <tr>
                         <th>Company</th>
                         <th>Role</th>
+                        <th>Tags</th>
                         <th>Status</th>
                         <th>Date</th>
                         <th>Actions</th>
@@ -328,6 +458,7 @@
                  <input type="date" id="editDate" />
                 <input type="url" id="editUrl" placeholder="job url (optional)" />
                 <input type="text" id="editNotes" placeholder="notes (optional)" />
+                <input type="text" id="editTags" placeholder="tags: remote, startup... (optional)" />
                 <div id="interviewDateWrap" style="display:none;">
                     <label style="font-size:11px; color:#6a9fd8; text-transform:uppercase; letter-spacing:0.6px; display:block; margin-bottom:6px;">Interview date</label>
                     <input type="date" id="editInterviewDate" style="border-color:#253050;" />
@@ -353,6 +484,17 @@
         </div>
     </div>
 </div>
+
+    <nav class="bottom-nav">
+        <a href="/dashboard" class="bottom-nav-item active">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            Dashboard
+        </a>
+        <a href="/calendar" class="bottom-nav-item">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>
+            Calendar
+        </a>
+    </nav>
 
     <script src="app.js"></script>
 </body>

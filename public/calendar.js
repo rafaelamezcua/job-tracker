@@ -154,6 +154,11 @@ function nextMonth() {
     renderCalendar();
 }
 
+function goToToday() {
+    currentDate = new Date();
+    renderCalendar();
+}
+
 function logout() {
     localStorage.removeItem('token');
     window.location.href = '/login';

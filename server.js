@@ -61,10 +61,10 @@ app.get('/stats/public', async (req, res) => {
 });
 
 app.post('/applications', authenticateToken, async (req, res) => {
-    const { company, role, status, date, url, notes } = req.body;
+    const { company, role, status, date, url, notes, tags } = req.body;
     const result = await db.query(
-        'INSERT INTO applications (userId, company, role, status, date, url, notes) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
-        [req.userId, company, role, status, date, url, notes]
+        'INSERT INTO applications (userId, company, role, status, date, url, notes, tags) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id',
+        [req.userId, company, role, status, date, url, notes, tags || null]
     );
     res.json({ message: 'Application added successfully', id: result.rows[0].id });
 });
@@ -80,28 +80,31 @@ app.get('/applications', authenticateToken, async (req, res) => {
 app.get('/applications/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
     const result = await db.query(
-        'SELECT * FROM applications WHERE id = $1',
-        [id]
+        'SELECT * FROM applications WHERE id = $1 AND userId = $2',
+        [id, req.userId]
     );
+    if (!result.rows[0]) return res.status(404).json({ error: 'Not found' });
     res.json(result.rows[0]);
 });
 
 app.put('/applications/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
-    const { company, role, status, date, url, notes, interview_date } = req.body;
-    await db.query(
-        'UPDATE applications SET company = $1, role = $2, status = $3, date = $4, url = $5, notes = $6, interview_date = $7 WHERE id = $8',
-        [company, role, status, date, url, notes, interview_date || null, id]
+    const { company, role, status, date, url, notes, interview_date, tags } = req.body;
+    const result = await db.query(
+        'UPDATE applications SET company = $1, role = $2, status = $3, date = $4, url = $5, notes = $6, interview_date = $7, tags = $8 WHERE id = $9 AND userId = $10',
+        [company, role, status, date, url, notes, interview_date || null, tags || null, id, req.userId]
     );
+    if (result.rowCount === 0) return res.status(404).json({ error: 'Not found' });
     res.json({ message: 'Application updated successfully' });
 });
 
 app.delete('/applications/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
-    await db.query(
-        'DELETE FROM applications WHERE id = $1',
-        [id]
+    const result = await db.query(
+        'DELETE FROM applications WHERE id = $1 AND userId = $2',
+        [id, req.userId]
     );
+    if (result.rowCount === 0) return res.status(404).json({ error: 'Not found' });
     res.json({ message: 'Application deleted successfully' });
 });
 
@@ -136,7 +139,7 @@ app.post('/login', async (req, res) => {
         return res.json({ error: 'Invalid email or password' });
     }
 
-    const token = jwt.sign({ userId: user.id }, SECRET);
+    const token = jwt.sign({ userId: user.id }, SECRET, { expiresIn: '7d' });
     res.json({ message: 'Logged in!', token: token, name: user.name });
 });
 

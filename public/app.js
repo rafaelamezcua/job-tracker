@@ -47,47 +47,190 @@ function updateStats() {
     document.getElementById('statApplied').textContent = allApplications.filter(a => a.status === 'Applied').length;
     document.getElementById('statInterview').textContent = allApplications.filter(a => a.status === 'Interview').length;
     document.getElementById('statOffer').textContent = allApplications.filter(a => a.status === 'Offer').length;
+    document.getElementById('statRejected').textContent = allApplications.filter(a => a.status === 'Rejected').length;
     updateWeeklyGoal();
+}
+
+let activeDatePreset = 'all';
+let customDateFrom = null;
+let customDateTo = null;
+let customRangeActive = false;
+
+function setPreset(preset) {
+    activeDatePreset = preset;
+    customRangeActive = false;
+    customDateFrom = null;
+    customDateTo = null;
+    document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.filter-pill').forEach(p => {
+        if (p.getAttribute('onclick') === `setPreset('${preset}')`) p.classList.add('active');
+    });
+    document.getElementById('customRangeWrap').classList.remove('show');
+    document.getElementById('customRangeToggle').classList.remove('active');
+    filterTable();
+}
+
+function toggleCustomRange() {
+    document.getElementById('customRangeWrap').classList.toggle('show');
+    document.getElementById('customRangeToggle').classList.toggle('active');
+}
+
+function applyCustomRange() {
+    const from = document.getElementById('filterFrom').value;
+    const to = document.getElementById('filterTo').value;
+    if (!from && !to) return;
+    customDateFrom = from || null;
+    customDateTo = to || null;
+    customRangeActive = true;
+    activeDatePreset = null;
+    document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+    document.getElementById('customRangeToggle').classList.add('active');
+    filterTable();
+}
+
+function clearCustomRange() {
+    document.getElementById('filterFrom').value = '';
+    document.getElementById('filterTo').value = '';
+    customDateFrom = null;
+    customDateTo = null;
+    customRangeActive = false;
+    setPreset('all');
+}
+
+function getDateRange(preset) {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    if (preset === 'today') return { from: today, to: today };
+    if (preset === 'week') {
+        const day = now.getDay();
+        const monday = new Date(today);
+        monday.setDate(today.getDate() - (day === 0 ? 6 : day - 1));
+        return { from: monday, to: today };
+    }
+    if (preset === '7days') {
+        const from = new Date(today);
+        from.setDate(today.getDate() - 6);
+        return { from, to: today };
+    }
+    if (preset === '30days') {
+        const from = new Date(today);
+        from.setDate(today.getDate() - 29);
+        return { from, to: today };
+    }
+    if (preset === 'month') {
+        return { from: new Date(now.getFullYear(), now.getMonth(), 1), to: today };
+    }
+    return null;
 }
 
 function filterTable() {
     const query = document.getElementById('searchInput').value.toLowerCase();
-    const filtered = allApplications.filter(app =>
+    updateActiveFilterBanner(query);
+    let filtered = allApplications.filter(app =>
         app.company.toLowerCase().includes(query) ||
         app.role.toLowerCase().includes(query) ||
         app.status.toLowerCase().includes(query) ||
-        app.date.toLowerCase().includes(query)
+        app.date.toLowerCase().includes(query) ||
+        (app.tags && app.tags.toLowerCase().includes(query))
     );
+
+    if (customRangeActive) {
+        filtered = filtered.filter(app => {
+            const d = new Date(app.date + 'T00:00:00');
+            if (customDateFrom && d < new Date(customDateFrom + 'T00:00:00')) return false;
+            if (customDateTo && d > new Date(customDateTo + 'T00:00:00')) return false;
+            return true;
+        });
+    } else if (activeDatePreset && activeDatePreset !== 'all') {
+        const range = getDateRange(activeDatePreset);
+        if (range) {
+            filtered = filtered.filter(app => {
+                const d = new Date(app.date + 'T00:00:00');
+                return d >= range.from && d <= range.to;
+            });
+        }
+    }
+
     renderTable(filtered);
+}
+
+function formatDate(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr + 'T00:00:00');
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
 function renderTable(applications) {
     const list = document.getElementById('applicationsList');
     list.innerHTML = '';
 
+    const countEl = document.getElementById('resultCount');
+    const total = allApplications.length;
+    if (countEl) {
+        countEl.textContent = applications.length === total
+            ? `${total} application${total !== 1 ? 's' : ''}`
+            : `Showing ${applications.length} of ${total} applications`;
+    }
+
     if (applications.length === 0) {
-        list.innerHTML = '<tr><td colspan="5" class="empty">No applications found</td></tr>';
+        const isFiltered = allApplications.length > 0;
+        list.innerHTML = `<tr><td colspan="6" class="empty">${
+            isFiltered
+                ? 'No applications match your filters — <a onclick="clearAllFilters()">clear filters</a>'
+                : 'No applications yet — add your first one above'
+        }</td></tr>`;
         return;
     }
 
     applications.forEach(app => {
+        const tagChips = app.tags
+            ? app.tags.split(',').map(t => t.trim()).filter(Boolean)
+                .map(t => `<span class="tag-chip" onclick="filterByTag('${t.replace(/'/g, "\\'")}')">${t}</span>`).join('')
+            : '<span style="color:#2a2a2a; font-size:11px;">—</span>';
+
         const row = document.createElement('tr');
         row.innerHTML = `
             <td class="company-name">${app.url ? `<a href="${app.url}" target="_blank" style="color:inherit; text-decoration:none;">${app.company}</a>` : app.company}</td>
             <td>${app.role}</td>
+            <td><div class="tag-chips">${tagChips}</div></td>
             <td><span class="badge badge-${app.status}">${app.status.toLowerCase()}</span></td>
-            <td>${app.date}</td>
+            <td>${formatDate(app.date)}</td>
             <td>
-                <button class="btn-details">Details</button>
-                <button class="btn-edit">Edit</button>
-                <button class="btn-delete">Delete</button>
+                <div style="display:flex; gap:6px; justify-content:flex-end;">
+                    <button class="btn-details">Details</button>
+                    <button class="btn-edit">Edit</button>
+                    <button class="btn-delete">Delete</button>
+                </div>
             </td>
         `;
         row.querySelector('.btn-details').addEventListener('click', () => openDetailsModal(app));
         row.querySelector('.btn-delete').addEventListener('click', () => deleteApplication(app.id));
-        row.querySelector('.btn-edit').addEventListener('click', () => openEditModal(app ));
+        row.querySelector('.btn-edit').addEventListener('click', () => openEditModal(app));
         list.appendChild(row);
     });
+}
+
+function filterByTag(tag) {
+    document.getElementById('searchInput').value = tag;
+    setPreset('all');
+}
+
+function clearAllFilters() {
+    document.getElementById('searchInput').value = '';
+    updateActiveFilterBanner('');
+    setPreset('all');
+}
+
+function updateActiveFilterBanner(query) {
+    const bar = document.getElementById('activeFilterBar');
+    const text = document.getElementById('activeFilterText');
+    if (!bar || !text) return;
+    if (query) {
+        text.textContent = `"${query}"`;
+        bar.classList.add('show');
+    } else {
+        bar.classList.remove('show');
+    }
 }
 
 async function updateStatus(id, newStatus) {
@@ -132,7 +275,8 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
             status: document.getElementById('status').value,
             date: document.getElementById('date').value,
             url: document.getElementById('url').value,
-            notes: document.getElementById('notes').value
+            notes: document.getElementById('notes').value,
+            tags: document.getElementById('tags').value
         })
     });
     e.target.reset();
@@ -154,6 +298,7 @@ function openEditModal(app) {
     document.getElementById('editDate').value = app.date;
     document.getElementById('editUrl').value = app.url || '';
     document.getElementById('editNotes').value = app.notes || '';
+    document.getElementById('editTags').value = app.tags || '';
     document.getElementById('editInterviewDate').value = app.interview_date || '';
     document.getElementById('interviewDateWrap').style.display = app.status === 'Interview' ? 'block' : 'none';
     document.getElementById('editOverlay').classList.add('show');
@@ -170,18 +315,20 @@ function closeEditPopup() {
 
 async function saveEdit() {
     const status = document.getElementById('editStatus').value;
+    const payload = {
+        company: document.getElementById('editCompany').value,
+        role: document.getElementById('editRole').value,
+        status,
+        date: document.getElementById('editDate').value,
+        url: document.getElementById('editUrl').value,
+        notes: document.getElementById('editNotes').value,
+        tags: document.getElementById('editTags').value,
+        interview_date: status === 'Interview' ? document.getElementById('editInterviewDate').value : null,
+    };
     await fetch(`/applications/${editingId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'authorization': token },
-        body: JSON.stringify({
-            company: document.getElementById('editCompany').value,
-            role: document.getElementById('editRole').value,
-            status,
-            date: document.getElementById('editDate').value,
-            url: document.getElementById('editUrl').value,
-            notes: document.getElementById('editNotes').value,
-            interview_date: status === 'Interview' ? document.getElementById('editInterviewDate').value : null,
-        })
+        body: JSON.stringify(payload)
     });
     closeEditPopup();
     loadApplications();
