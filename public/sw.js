@@ -1,4 +1,4 @@
-const CACHE = 'jobtracker-v1';
+const CACHE = 'nimbus-v1';
 const OFFLINE_ASSETS = ['/', '/dashboard', '/login', '/app.js', '/calendar.js'];
 
 self.addEventListener('install', e => {

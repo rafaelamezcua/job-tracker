@@ -1,6 +1,6 @@
 {
-  "name": "JobTracker",
-  "short_name": "JobTracker",
+  "name": "Nimbus",
+  "short_name": "Nimbus",
   "description": "Track your job applications in one place",
   "start_url": "/dashboard",
   "display": "standalone",
