@@ -117,7 +117,7 @@ app.get('/stats/public', apiLimiter, async (_req, res) => {
 });
 
 app.post('/applications', apiLimiter, authenticateToken, async (req, res) => {
-    const { company, role, status, date, url, notes, tags } = req.body;
+    const { company, role, status, date, url, notes, tags, salary } = req.body;
 
     if (!isValidString(company, 200)) return res.status(400).json({ error: 'Invalid company name' });
     if (!isValidString(role, 200)) return res.status(400).json({ error: 'Invalid role' });
@@ -128,11 +128,13 @@ app.post('/applications', apiLimiter, authenticateToken, async (req, res) => {
     if (notes && notes.length > 5000) return res.status(400).json({ error: 'Notes too long (max 5000 characters)' });
     if (tags && typeof tags !== 'string') return res.status(400).json({ error: 'Invalid tags' });
     if (tags && tags.length > 500) return res.status(400).json({ error: 'Tags too long' });
+    if (salary && typeof salary !== 'string') return res.status(400).json({ error: 'Invalid salary' });
+    if (salary && salary.length > 100) return res.status(400).json({ error: 'Salary too long' });
 
     try {
         const result = await db.query(
-            'INSERT INTO applications (userId, company, role, status, date, url, notes, tags) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id',
-            [req.userId, company.trim(), role.trim(), status, date, url || null, notes || null, tags || null]
+            'INSERT INTO applications (userId, company, role, status, date, url, notes, tags, salary) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id',
+            [req.userId, company.trim(), role.trim(), status, date, url || null, notes || null, tags || null, salary || null]
         );
         res.json({ message: 'Application added successfully', id: result.rows[0].id });
     } catch {
@@ -172,7 +174,7 @@ app.put('/applications/:id', apiLimiter, authenticateToken, async (req, res) => 
     const { id } = req.params;
     if (isNaN(parseInt(id))) return res.status(400).json({ error: 'Invalid ID' });
 
-    const { company, role, status, date, url, notes, interview_date, tags } = req.body;
+    const { company, role, status, date, url, notes, interview_date, tags, salary } = req.body;
 
     if (!isValidString(company, 200)) return res.status(400).json({ error: 'Invalid company name' });
     if (!isValidString(role, 200)) return res.status(400).json({ error: 'Invalid role' });
@@ -183,11 +185,13 @@ app.put('/applications/:id', apiLimiter, authenticateToken, async (req, res) => 
     if (notes && notes.length > 5000) return res.status(400).json({ error: 'Notes too long (max 5000 characters)' });
     if (tags && typeof tags !== 'string') return res.status(400).json({ error: 'Invalid tags' });
     if (tags && tags.length > 500) return res.status(400).json({ error: 'Tags too long' });
+    if (salary && typeof salary !== 'string') return res.status(400).json({ error: 'Invalid salary' });
+    if (salary && salary.length > 100) return res.status(400).json({ error: 'Salary too long' });
 
     try {
         const result = await db.query(
-            'UPDATE applications SET company = $1, role = $2, status = $3, date = $4, url = $5, notes = $6, interview_date = $7, tags = $8 WHERE id = $9 AND userId = $10',
-            [company.trim(), role.trim(), status, date, url || null, notes || null, interview_date || null, tags || null, id, req.userId]
+            'UPDATE applications SET company = $1, role = $2, status = $3, date = $4, url = $5, notes = $6, interview_date = $7, tags = $8, salary = $9 WHERE id = $10 AND userId = $11',
+            [company.trim(), role.trim(), status, date, url || null, notes || null, interview_date || null, tags || null, salary || null, id, req.userId]
         );
         if (result.rowCount === 0) return res.status(404).json({ error: 'Not found' });
         res.json({ message: 'Application updated successfully' });

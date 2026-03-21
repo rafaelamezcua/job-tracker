@@ -26,6 +26,21 @@ function safeUrl(url) {
 
 if (!token) window.location.href = '/login';
 
+// ── Theme toggle ──────────────────────────────────────────────────
+function initTheme() {
+    const theme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', theme);
+    const btn = document.getElementById('themeToggle');
+    if (btn) btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+}
+function toggleTheme() {
+    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    document.getElementById('themeToggle').textContent = next === 'dark' ? '☀️' : '🌙';
+}
+initTheme();
+
 let allApplications = [];
 let lastAddedId = null;
 let pendingDeleteId = null;
@@ -115,6 +130,55 @@ function updateStats() {
         });
     });
     updateWeeklyGoal();
+    const streak = calculateStreak();
+    const streakEl = document.getElementById('statStreak');
+    if (streakEl) {
+        const from = parseInt(streakEl.textContent) || 0;
+        if (from !== streak) {
+            const obj = { n: from };
+            anime({ targets: obj, n: streak, round: 1, duration: 500, easing: 'easeOutQuad', update() { streakEl.textContent = obj.n; } });
+        }
+    }
+}
+
+// ── Streak counter ────────────────────────────────────────────────
+function calculateStreak() {
+    if (!allApplications.length) return 0;
+    const dateSet = new Set(allApplications.map(a => a.date));
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayStr = today.toISOString().split('T')[0];
+    let checkDate = new Date(today);
+    if (!dateSet.has(todayStr)) checkDate.setDate(checkDate.getDate() - 1);
+    let streak = 0;
+    while (true) {
+        const dateStr = checkDate.toISOString().split('T')[0];
+        if (dateSet.has(dateStr)) { streak++; checkDate.setDate(checkDate.getDate() - 1); }
+        else break;
+    }
+    return streak;
+}
+
+// ── Confetti ──────────────────────────────────────────────────────
+function fireConfetti() {
+    if (typeof confetti === 'undefined') return;
+    confetti({ particleCount: 140, spread: 70, origin: { y: 0.6 }, colors: ['#7f77dd', '#5aad6a', '#d4a847', '#6a9fd8', '#f0a070'] });
+}
+
+// ── Export CSV ────────────────────────────────────────────────────
+function exportCSV() {
+    if (!allApplications.length) return alert('No applications to export.');
+    const headers = ['Company', 'Role', 'Status', 'Date', 'URL', 'Notes', 'Tags', 'Interview Date', 'Salary'];
+    const rows = allApplications.map(a =>
+        [a.company, a.role, a.status, a.date, a.url || '', a.notes || '', a.tags || '', a.interview_date || '', a.salary || '']
+        .map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')
+    );
+    const csv = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'job-applications.csv'; a.click();
+    URL.revokeObjectURL(url);
 }
 
 // ── Date filter ───────────────────────────────────────────────────
@@ -258,11 +322,13 @@ function renderTable(applications) {
             : '<span style="color:#2a2a2a; font-size:11px;">—</span>';
 
         const validUrl = safeUrl(app.url);
+        const domain = validUrl ? (() => { try { return new URL(validUrl).hostname.replace(/^www\./, ''); } catch { return null; } })() : null;
+        const logoHtml = domain ? `<img class="company-logo" src="https://logo.clearbit.com/${escapeHtml(domain)}" onerror="this.style.display='none'" loading="lazy" alt="">` : '';
         const row = document.createElement('tr');
         row.style.opacity = '0';
         row.style.transform = 'translateY(6px)';
         row.innerHTML = `
-            <td class="company-name">${validUrl ? `<a href="${escapeHtml(validUrl)}" target="_blank" rel="noopener noreferrer" style="color:inherit; text-decoration:none;">${escapeHtml(app.company)}</a>` : escapeHtml(app.company)}</td>
+            <td class="company-name">${logoHtml}${validUrl ? `<a href="${escapeHtml(validUrl)}" target="_blank" rel="noopener noreferrer" style="color:inherit; text-decoration:none;">${escapeHtml(app.company)}</a>` : escapeHtml(app.company)}</td>
             <td>${escapeHtml(app.role)}</td>
             <td><div class="tag-chips">${tagChipEls}</div></td>
             <td><span class="badge badge-${escapeHtml(app.status)}">${escapeHtml(app.status.toLowerCase())}</span></td>
@@ -385,21 +451,24 @@ document.getElementById('confirmDelete').addEventListener('click', async () => {
 // ── Add form ──────────────────────────────────────────────────────
 document.getElementById('addForm').addEventListener('submit', async (e) => {
     e.preventDefault();
+    const status = document.getElementById('status').value;
     const res = await fetch('/applications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'authorization': token },
         body: JSON.stringify({
             company: document.getElementById('company').value,
             role: document.getElementById('role').value,
-            status: document.getElementById('status').value,
+            status,
             date: document.getElementById('date').value,
             url: document.getElementById('url').value,
             notes: document.getElementById('notes').value,
-            tags: document.getElementById('tags').value
+            tags: document.getElementById('tags').value,
+            salary: document.getElementById('salary').value
         })
     });
     const data = await res.json();
     lastAddedId = data.id || null;
+    if (status === 'Offer') fireConfetti();
     e.target.reset();
     loadApplications();
 });
@@ -421,6 +490,7 @@ function openEditModal(app) {
     document.getElementById('editUrl').value = app.url || '';
     document.getElementById('editNotes').value = app.notes || '';
     document.getElementById('editTags').value = app.tags || '';
+    document.getElementById('editSalary').value = app.salary || '';
     document.getElementById('editInterviewDate').value = app.interview_date || '';
     document.getElementById('interviewDateWrap').style.display = app.status === 'Interview' ? 'block' : 'none';
     document.getElementById('editOverlay').classList.add('show');
@@ -445,6 +515,7 @@ async function saveEdit() {
         url: document.getElementById('editUrl').value,
         notes: document.getElementById('editNotes').value,
         tags: document.getElementById('editTags').value,
+        salary: document.getElementById('editSalary').value,
         interview_date: status === 'Interview' ? document.getElementById('editInterviewDate').value : null,
     };
     await fetch(`/applications/${editingId}`, {
@@ -452,6 +523,7 @@ async function saveEdit() {
         headers: { 'Content-Type': 'application/json', 'authorization': token },
         body: JSON.stringify(payload)
     });
+    if (status === 'Offer') fireConfetti();
     closeEditPopup();
     loadApplications();
 }
@@ -459,9 +531,20 @@ async function saveEdit() {
 // ── Details modal ─────────────────────────────────────────────────
 function openDetailsModal(app) {
     const urlEl = document.getElementById('detailsUrl');
-    urlEl.href = app.url || '#';
+    const validUrl = safeUrl(app.url);
+    urlEl.href = validUrl || '#';
     urlEl.textContent = app.url || 'No URL provided';
-    document.getElementById('detailsNotes').textContent = app.notes || 'No notes added';
+
+    const salaryEl = document.getElementById('detailsSalary');
+    salaryEl.textContent = app.salary ? `Salary: ${app.salary}` : '';
+    salaryEl.style.display = app.salary ? 'block' : 'none';
+
+    const notesEl = document.getElementById('detailsNotes');
+    if (app.notes) {
+        notesEl.innerHTML = typeof marked !== 'undefined' ? marked.parse(app.notes) : escapeHtml(app.notes);
+    } else {
+        notesEl.innerHTML = '<span style="color:var(--text-dimmer)">No notes added</span>';
+    }
     document.getElementById('detailsOverlay').classList.add('show');
 }
 
@@ -470,3 +553,8 @@ function closeDetailsModal() {
 }
 
 loadApplications();
+
+// ── PWA Service Worker ────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+}

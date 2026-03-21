@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JobTracker</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#7f77dd">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <!-- Google Analytics — replace G-MX3WTKFV32 with your Measurement ID from analytics.google.com -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-MX3WTKFV32"></script>
     <script>
@@ -13,42 +17,63 @@
         gtag('config', 'G-MX3WTKFV32');
     </script>
     <style>
+        :root {
+            --bg:#0d0d0d; --bg2:#141414; --bg3:#1a1a1a;
+            --border:#1e1e1e; --border2:#222; --border3:#2a2a2a;
+            --text:#ccc; --text-bright:#e8e8e8; --text-muted:#888;
+            --text-dim:#555; --text-dimmer:#444; --input-bg:#111;
+            --nav-bg:#0d0d0d; --table-hover:#181818; --bar-bg:#1a1a1a;
+        }
+        [data-theme="light"] {
+            --bg:#f2f2f7; --bg2:#ffffff; --bg3:#f8f8fc;
+            --border:#e4e4ec; --border2:#d0d0dc; --border3:#c0c0cc;
+            --text:#333; --text-bright:#111; --text-muted:#666;
+            --text-dim:#777; --text-dimmer:#888; --input-bg:#fff;
+            --nav-bg:#fff; --table-hover:#f5f5fa; --bar-bg:#e0e0ec;
+        }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: #0d0d0d; font-family: Arial, sans-serif; color: #ccc; min-height: 100vh; opacity: 0; }
+        body { background: var(--bg); font-family: Arial, sans-serif; color: var(--text); min-height: 100vh; opacity: 0; transition: background 0.3s, color 0.3s; }
 
         /* NAV */
         nav {
             display: flex; justify-content: space-between; align-items: center;
             padding: 1rem 2.5rem;
-            border-bottom: 1px solid #1a1a1a;
-            position: sticky; top: 0; background: #0d0d0d; z-index: 50;
+            border-bottom: 1px solid var(--border);
+            position: sticky; top: 0; background: var(--nav-bg); z-index: 50;
+            transition: background 0.3s, border-color 0.3s;
         }
-        .logo { font-size: 18px; font-weight: bold; color: #e8e8e8; text-decoration: none; }
+        .logo { font-size: 18px; font-weight: bold; color: var(--text-bright); text-decoration: none; }
         .logo span { color: #7f77dd; }
         .nav-right { display: flex; align-items: center; gap: 16px; }
-        .nav-greeting { font-size: 13px; color: #444; }
+        .nav-greeting { font-size: 13px; color: var(--text-dimmer); }
         .nav-greeting span { color: #7f77dd; }
         .btn-logout {
-            background: transparent; border: 1px solid #2a2a2a;
-            color: #666; padding: 6px 16px; border-radius: 6px;
+            background: transparent; border: 1px solid var(--border3);
+            color: var(--text-dim); padding: 6px 16px; border-radius: 6px;
             cursor: pointer; font-size: 13px; transition: all 0.2s;
         }
         .btn-logout:hover { border-color: #c46a6a; color: #c46a6a; }
+        .btn-theme {
+            background: transparent; border: 1px solid var(--border3);
+            color: var(--text-dim); padding: 5px 9px; border-radius: 6px;
+            cursor: pointer; font-size: 15px; transition: all 0.2s; line-height: 1;
+        }
+        .btn-theme:hover { border-color: #7f77dd; color: #7f77dd; }
 
         .container { max-width: 980px; margin: 0 auto; padding: 2rem 1.5rem; }
 
         /* HERO */
         .hero { margin-bottom: 2rem; }
-        .hero h1 { font-size: 26px; color: #e8e8e8; font-weight: bold; margin-bottom: 4px; }
+        .hero h1 { font-size: 26px; color: var(--text-bright); font-weight: bold; margin-bottom: 4px; }
         .hero h1 span { color: #7f77dd; }
-        .hero p { font-size: 14px; color: #444; }
+        .hero p { font-size: 14px; color: var(--text-dimmer); }
 
         /* STATS */
-        .stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 2rem; }
+        .stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 2rem; }
         .stat {
-            background: #141414; border: 1px solid #1e1e1e;
+            background: var(--bg2); border: 1px solid var(--border);
             border-radius: 10px; padding: 16px 20px;
-            cursor: default; transition: transform 0.2s, border-color 0.2s;
+            cursor: default; transition: transform 0.2s, border-color 0.2s, background 0.3s;
             position: relative; overflow: hidden;
         }
         .stat::after {
@@ -58,64 +83,77 @@
         }
         .stat:hover { transform: translateY(-2px); border-color: var(--accent); }
         .stat:hover::after { transform: scaleX(1); }
-        .stat-label { font-size: 11px; color: #444; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 8px; }
+        .stat-label { font-size: 11px; color: var(--text-dimmer); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 8px; }
+        .stat-sub { font-size: 10px; color: var(--text-dimmer); margin-top: 4px; }
         .stat-value { font-size: 28px; font-weight: bold; color: var(--accent); }
         .stat-total { --accent: #7f77dd; }
         .stat-applied { --accent: #d4a847; }
         .stat-interview { --accent: #6a9fd8; }
         .stat-offer { --accent: #5aad6a; }
         .stat-rejected { --accent: #c46a6a; }
+        .stat-streak { --accent: #f0a070; }
 
         /* WEEKLY GOAL */
         .weekly-goal-card {
-            background: #141414; border: 1px solid #1e1e1e;
+            background: var(--bg2); border: 1px solid var(--border);
             border-radius: 10px; padding: 14px 20px;
             margin-bottom: 1.25rem;
             display: flex; align-items: center; gap: 20px;
+            transition: background 0.3s, border-color 0.3s;
         }
-        .weekly-goal-label { font-size: 11px; color: #444; text-transform: uppercase; letter-spacing: 0.6px; white-space: nowrap; }
-        .weekly-goal-label strong { color: #ccc; font-size: 13px; }
+        .weekly-goal-label { font-size: 11px; color: var(--text-dimmer); text-transform: uppercase; letter-spacing: 0.6px; white-space: nowrap; }
+        .weekly-goal-label strong { color: var(--text); font-size: 13px; }
         .weekly-goal-bar-wrap { flex: 1; }
-        .weekly-goal-track { background: #1a1a1a; border-radius: 4px; height: 5px; overflow: hidden; }
+        .weekly-goal-track { background: var(--bar-bg); border-radius: 4px; height: 5px; overflow: hidden; }
         .weekly-goal-fill { height: 100%; border-radius: 4px; width: 0%; }
         .weekly-goal-edit { background: none; border: none; color: #7f77dd; font-size: 11px; cursor: pointer; padding: 0; text-decoration: underline dotted; white-space: nowrap; }
 
         /* FORM */
         .add-form {
-            background: #141414; border: 1px solid #1e1e1e;
+            background: var(--bg2); border: 1px solid var(--border);
             border-radius: 10px; padding: 1.5rem; margin-bottom: 1.25rem;
-            transition: border-color 0.3s;
+            transition: border-color 0.3s, background 0.3s;
         }
         .add-form:focus-within { border-color: #7f77dd44; }
-        .form-label { font-size: 11px; color: #444; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 14px; }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr 150px 150px auto; gap: 10px; align-items: center; }
-        .form-row input, .form-row select, .form-row-2 input {
-            background: #0d0d0d; border: 1px solid #222; border-radius: 8px;
-            padding: 10px 14px; color: #ccc; font-size: 13px; width: 100%;
-            transition: border-color 0.2s; color-scheme: dark;
-            }
-            #editCompany, #editRole, #editStatus, #editDate, #editUrl, #editNotes, #editInterviewDate, #editTags {
-                background: #0d0d0d; border: 1px solid #222; border-radius: 8px;
-                padding: 10px 14px; color: #ccc; font-size: 13px; width: 100%;
-                transition: border-color 0.2s; color-scheme: dark;
-            }
-            #editCompany:focus, #editRole:focus, #editStatus:focus, #editDate:focus,
-            #editUrl:focus, #editNotes:focus, #editInterviewDate:focus, #editTags:focus { outline: none; border-color: #7f77dd; }
-            input:-webkit-autofill, input:-webkit-autofill:focus {
-                -webkit-box-shadow: 0 0 0 1000px #0d0d0d inset;
-                -webkit-text-fill-color: #ccc;
-            }
-            .nav-link {
-            font-size: 13px; color: #888; text-decoration: none;
-            border: 1px solid #2a2a2a; padding: 6px 16px; border-radius: 6px;
+        .form-label { font-size: 11px; color: var(--text-dimmer); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 14px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr 130px 130px auto; gap: 10px; align-items: center; }
+        .form-row input, .form-row select, .form-row-2 input, .form-row-2 textarea {
+            background: var(--input-bg); border: 1px solid var(--border2); border-radius: 8px;
+            padding: 10px 14px; color: var(--text); font-size: 13px; width: 100%;
+            transition: border-color 0.2s, background 0.3s; color-scheme: dark;
+        }
+        [data-theme="light"] .form-row input,
+        [data-theme="light"] .form-row select,
+        [data-theme="light"] .form-row-2 input,
+        [data-theme="light"] .form-row-2 textarea { color-scheme: light; }
+        #editCompany, #editRole, #editStatus, #editDate, #editUrl, #editNotes, #editInterviewDate, #editTags, #editSalary {
+            background: var(--input-bg); border: 1px solid var(--border2); border-radius: 8px;
+            padding: 10px 14px; color: var(--text); font-size: 13px; width: 100%;
+            transition: border-color 0.2s, background 0.3s; color-scheme: dark;
+        }
+        [data-theme="light"] #editCompany, [data-theme="light"] #editRole,
+        [data-theme="light"] #editStatus, [data-theme="light"] #editDate,
+        [data-theme="light"] #editUrl, [data-theme="light"] #editNotes,
+        [data-theme="light"] #editInterviewDate, [data-theme="light"] #editTags,
+        [data-theme="light"] #editSalary { color-scheme: light; }
+        #editNotes { resize: vertical; min-height: 80px; font-family: inherit; }
+        #editCompany:focus, #editRole:focus, #editStatus:focus, #editDate:focus,
+        #editUrl:focus, #editNotes:focus, #editInterviewDate:focus, #editTags:focus, #editSalary:focus { outline: none; border-color: #7f77dd; }
+        input:-webkit-autofill, input:-webkit-autofill:focus {
+            -webkit-box-shadow: 0 0 0 1000px var(--input-bg) inset;
+            -webkit-text-fill-color: var(--text);
+        }
+        .nav-link {
+            font-size: 13px; color: var(--text-muted); text-decoration: none;
+            border: 1px solid var(--border3); padding: 6px 16px; border-radius: 6px;
             transition: all 0.2s;
         }
         .nav-link:hover { border-color: #7f77dd; color: #7f77dd; }
 
         .form-row input:focus, .form-row select:focus { outline: none; border-color: #7f77dd; }
-        .form-row input::placeholder { color: #333; }
+        .form-row input::placeholder { color: var(--border3); }
 
-        .form-row-2 { display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; margin-top: 10px; }
+        .form-row-2 { display: grid; grid-template-columns: 1fr 1fr 120px auto; gap: 10px; margin-top: 10px; }
 
         .btn-add {
             background: #7f77dd; color: #fff; border: none;
@@ -125,27 +163,34 @@
         .btn-add:hover { background: #6e66cc; }
         .btn-add:active { transform: scale(0.97); }
 
-        /* SEARCH */
-        .search-wrap { margin-bottom: 0.6rem; position: relative; }
+        /* SEARCH + EXPORT */
+        .search-actions { display: flex; gap: 10px; align-items: center; margin-bottom: 0.6rem; }
+        .search-wrap { flex: 1; position: relative; }
         .search-wrap input {
-            width: 100%; background: #141414; border: 1px solid #1e1e1e;
+            width: 100%; background: var(--bg2); border: 1px solid var(--border);
             border-radius: 8px; padding: 10px 16px 10px 40px;
-            color: #ccc; font-size: 14px; transition: border-color 0.2s;
+            color: var(--text); font-size: 14px; transition: border-color 0.2s, background 0.3s;
         }
         .search-wrap input:focus { outline: none; border-color: #7f77dd; }
-        .search-wrap input::placeholder { color: #333; }
-        .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #333; font-size: 14px; }
+        .search-wrap input::placeholder { color: var(--border3); }
+        .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--border3); font-size: 14px; }
+        .btn-export {
+            background: transparent; border: 1px solid var(--border3); color: var(--text-muted);
+            border-radius: 8px; padding: 10px 16px; font-size: 13px; cursor: pointer;
+            white-space: nowrap; transition: all 0.2s;
+        }
+        .btn-export:hover { border-color: #5aad6a; color: #5aad6a; }
 
         /* DATE FILTER */
         .filter-bar {
             display: flex; align-items: center; gap: 6px;
             margin-bottom: 0.6rem; flex-wrap: wrap;
         }
-        .filter-label { font-size: 11px; color: #444; text-transform: uppercase; letter-spacing: 0.6px; margin-right: 2px; white-space: nowrap; }
+        .filter-label { font-size: 11px; color: var(--text-dimmer); text-transform: uppercase; letter-spacing: 0.6px; margin-right: 2px; white-space: nowrap; }
         .filter-pill {
-            background: #141414; border: 1px solid #1e1e1e;
+            background: var(--bg2); border: 1px solid var(--border);
             border-radius: 20px; padding: 4px 13px;
-            font-size: 12px; color: #555; cursor: pointer;
+            font-size: 12px; color: var(--text-dim); cursor: pointer;
             transition: all 0.2s; white-space: nowrap;
         }
         .filter-pill:hover { border-color: #7f77dd; color: #7f77dd; }
@@ -157,12 +202,13 @@
             transition: max-height 0.3s ease, opacity 0.3s ease, margin-bottom 0.3s ease;
         }
         .custom-range-wrap.show { max-height: 80px; opacity: 1; margin-bottom: 0.75rem; }
-        .custom-range-label { font-size: 12px; color: #444; }
+        .custom-range-label { font-size: 12px; color: var(--text-dimmer); }
         .custom-range-wrap input[type="date"] {
-            background: #141414; border: 1px solid #1e1e1e;
+            background: var(--bg2); border: 1px solid var(--border);
             border-radius: 8px; padding: 6px 12px;
-            color: #ccc; font-size: 12px; color-scheme: dark; transition: border-color 0.2s;
+            color: var(--text); font-size: 12px; color-scheme: dark; transition: border-color 0.2s, background 0.3s;
         }
+        [data-theme="light"] .custom-range-wrap input[type="date"] { color-scheme: light; }
         .custom-range-wrap input[type="date"]:focus { outline: none; border-color: #7f77dd; }
         .btn-apply-range {
             background: #7f77dd; border: none; color: #fff;
@@ -170,57 +216,60 @@
         }
         .btn-apply-range:hover { background: #6e66cc; }
         .btn-clear-range {
-            background: transparent; border: 1px solid #222; color: #555;
+            background: transparent; border: 1px solid var(--border2); color: var(--text-dim);
             border-radius: 6px; padding: 6px 14px; font-size: 12px; cursor: pointer; transition: all 0.2s;
         }
-        .btn-clear-range:hover { color: #aaa; border-color: #555; }
+        .btn-clear-range:hover { color: var(--text); border-color: var(--text-muted); }
 
         /* TABLE */
-        .table-wrap { background: #141414; border: 1px solid #1e1e1e; border-radius: 10px; overflow: hidden; }
+        .table-wrap { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; transition: background 0.3s, border-color 0.3s; }
         table { width: 100%; border-collapse: collapse; }
-        th { padding: 12px 18px; text-align: left; font-size: 11px; color: #444; text-transform: uppercase; letter-spacing: 0.6px; border-bottom: 1px solid #1e1e1e; }
+        th { padding: 12px 18px; text-align: left; font-size: 11px; color: var(--text-dimmer); text-transform: uppercase; letter-spacing: 0.6px; border-bottom: 1px solid var(--border); }
         th:last-child { text-align: right; }
         td:last-child { text-align: right; }
-        td { padding: 14px 18px; font-size: 13px; color: #888; border-bottom: 1px solid #181818; transition: background 0.15s; }
+        td { padding: 14px 18px; font-size: 13px; color: var(--text-muted); border-bottom: 1px solid var(--border); transition: background 0.15s; }
         tr:last-child td { border-bottom: none; }
-        tr:hover td { background: #181818; color: #bbb; }
-        tr:hover .company-name { color: #fff; }
-        .company-name { color: #e0e0e0; font-weight: bold; }
+        tr:hover td { background: var(--table-hover); color: var(--text); }
+        tr:hover .company-name { color: var(--text-bright); }
+        .company-name { color: var(--text-bright); font-weight: bold; display: flex; align-items: center; gap: 8px; }
+        .company-logo { width: 18px; height: 18px; border-radius: 4px; object-fit: contain; flex-shrink: 0; }
 
         .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
         .badge-Applied { background: #2a2820; color: #d4a847; border: 1px solid #3d3520; }
         .badge-Interview { background: #1e2535; color: #6a9fd8; border: 1px solid #253050; }
         .badge-Offer { background: #1a2e20; color: #5aad6a; border: 1px solid #223828; }
         .badge-Rejected { background: #2e1e1e; color: #c46a6a; border: 1px solid #3d2525; }
+        .badge-Withdrawn { background: #252525; color: #888; border: 1px solid #333; }
+        .badge-Saved { background: #1e1e35; color: #7f77dd; border: 1px solid #2a2a50; }
 
         select.status-sel {
-            background: #111; border: 1px solid #222; border-radius: 6px;
-            padding: 5px 8px; color: #ccc; font-size: 12px;
+            background: var(--input-bg); border: 1px solid var(--border2); border-radius: 6px;
+            padding: 5px 8px; color: var(--text); font-size: 12px;
         }
         select.status-sel:focus { outline: none; border-color: #7f77dd; }
 
         .btn-delete {
-            background: transparent; border: 1px solid #222; border-radius: 6px;
-            padding: 5px 12px; color: #444; font-size: 12px;
+            background: transparent; border: 1px solid var(--border2); border-radius: 6px;
+            padding: 5px 12px; color: var(--text-dimmer); font-size: 12px;
             cursor: pointer; margin-left: 8px; transition: all 0.2s;
         }
         .btn-delete:hover { border-color: #c46a6a; color: #c46a6a; background: #2e1e1e22; }
 
         .btn-edit {
-            background: transparent; border: 1px solid #222; border-radius: 6px;
-            padding: 5px 12px; color: #444; font-size: 12px;
+            background: transparent; border: 1px solid var(--border2); border-radius: 6px;
+            padding: 5px 12px; color: var(--text-dimmer); font-size: 12px;
             cursor: pointer; margin-left: 8px; transition: all 0.2s;
         }
         .btn-edit:hover { border-color: #7f77dd; color: #7f77dd; background: #7f77dd22; }
 
         .btn-details {
-            background: transparent; border: 1px solid #222; border-radius: 6px;
-            padding: 5px 12px; color: #444; font-size: 12px;
+            background: transparent; border: 1px solid var(--border2); border-radius: 6px;
+            padding: 5px 12px; color: var(--text-dimmer); font-size: 12px;
             cursor: pointer; margin-left: 8px; transition: all 0.2s;
         }
         .btn-details:hover { border-color: #5aad6a; color: #5aad6a; background: #1a2e2022; }
 
-        .empty { text-align: center; padding: 3rem; color: #333; font-size: 14px; }
+        .empty { text-align: center; padding: 3rem; color: var(--border3); font-size: 14px; }
         .empty a { color: #7f77dd; cursor: pointer; text-decoration: none; }
         .empty a:hover { text-decoration: underline; }
 
@@ -266,20 +315,20 @@
             font-size: 14px; line-height: 1; padding: 0; opacity: 0.7;
         }
         .active-filter-clear:hover { opacity: 1; }
-        .active-filter-label { font-size: 12px; color: #444; }
+        .active-filter-label { font-size: 12px; color: var(--text-dimmer); }
 
         /* RESULT COUNT */
-        .result-count { font-size: 12px; color: #444; margin-bottom: 0.5rem; min-height: 18px; }
+        .result-count { font-size: 12px; color: var(--text-dimmer); margin-bottom: 0.5rem; min-height: 18px; }
 
         /* BOTTOM NAV (mobile only) */
         .bottom-nav {
             display: none; position: fixed; bottom: 0; left: 0; right: 0;
-            background: #141414; border-top: 1px solid #1e1e1e; z-index: 50;
+            background: var(--bg2); border-top: 1px solid var(--border); z-index: 50;
             justify-content: space-around; padding: 8px 0 12px;
         }
         .bottom-nav-item {
             display: flex; flex-direction: column; align-items: center; gap: 3px;
-            color: #444; font-size: 10px; text-decoration: none;
+            color: var(--text-dimmer); font-size: 10px; text-decoration: none;
             padding: 4px 24px; transition: color 0.2s; text-transform: uppercase; letter-spacing: 0.5px;
         }
         .bottom-nav-item svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.8; }
@@ -299,25 +348,34 @@
         }
         .overlay.show .popup { transform: scale(1) translateY(0); }
         .popup {
-             background: #1a1a1a; border: 1px solid #333;
+             background: var(--bg3); border: 1px solid var(--border3);
              border-radius: 12px; padding: 2rem; width: 500px;
              max-width: 90vw; max-height: 80vh; overflow-y: auto; text-align: center;
+             transition: background 0.3s;
         }
-        .popup h3 { color: #e8e8e8; font-size: 16px; margin-bottom: 8px; }
-        .popup p { color: #555; font-size: 13px; margin-bottom: 1.5rem; }
+        .popup h3 { color: var(--text-bright); font-size: 16px; margin-bottom: 8px; }
+        .popup p { color: var(--text-dim); font-size: 13px; margin-bottom: 1.5rem; }
         .popup-btns { display: flex; gap: 10px; justify-content: center; }
-        .btn-cancel { background: transparent; border: 1px solid #333; color: #666; padding: 8px 24px; border-radius: 6px; cursor: pointer; font-size: 13px; }
-        .btn-cancel:hover { color: #aaa; border-color: #555; }
+        .btn-cancel { background: transparent; border: 1px solid var(--border3); color: var(--text-dim); padding: 8px 24px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+        .btn-cancel:hover { color: var(--text); border-color: var(--text-muted); }
         .btn-confirm { background: #c46a6a; border: none; color: #fff; padding: 8px 24px; border-radius: 6px; cursor: pointer; font-size: 13px; }
         .btn-confirm:hover { background: #b05555; }
+
+        /* MARKDOWN NOTES */
+        .notes-rendered { color: var(--text); font-size: 13px; text-align: left; line-height: 1.7; }
+        .notes-rendered h1, .notes-rendered h2, .notes-rendered h3 { color: var(--text-bright); margin: 0.5rem 0 0.25rem; font-size: 14px; }
+        .notes-rendered p { margin: 0 0 0.5rem; }
+        .notes-rendered ul, .notes-rendered ol { padding-left: 1.5rem; margin-bottom: 0.5rem; }
+        .notes-rendered code { background: var(--bg); padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+        .notes-rendered strong { color: var(--text-bright); }
+        .notes-rendered a { color: #7f77dd; }
 
         /* MOBILE */
         @media (max-width: 640px) {
             nav { padding: 0.85rem 1.25rem; }
             .nav-greeting { display: none; }
             .container { padding: 1.25rem 1rem; padding-bottom: 80px; }
-            .stats { grid-template-columns: repeat(2, 1fr); }
-            .stat:nth-child(5) { grid-column: 1 / -1; }
+            .stats { grid-template-columns: repeat(3, 1fr); }
             .stat-value { font-size: 20px; }
             .stat { padding: 12px 14px; }
             .form-row { grid-template-columns: 1fr 1fr; }
@@ -325,8 +383,8 @@
             .form-row select { grid-column: 1; }
             .form-row input[type="date"] { grid-column: 2; }
             .form-row button { display: none; }
-            .form-row-2 { grid-template-columns: 1fr; }
-            .form-row-2 .btn-add { width: 100%; }
+            .form-row-2 { grid-template-columns: 1fr 1fr; }
+            .form-row-2 .btn-add { grid-column: 1 / -1; width: 100%; }
             .table-wrap { overflow-x: auto; }
             th:nth-child(3), td:nth-child(3),
             th:nth-child(5), td:nth-child(5) { display: none; }
@@ -338,6 +396,7 @@
             .filter-bar::-webkit-scrollbar { display: none; }
             .custom-range-wrap { flex-direction: column; align-items: flex-start; gap: 6px; }
             .bottom-nav { display: flex; }
+            .btn-export span { display: none; }
         }
     </style>
 </head>
@@ -348,6 +407,7 @@
         <div class="nav-right">
             <span class="nav-greeting">Hey, <span id="userGreeting"></span> !👋</span>
             <a href="/calendar" class="nav-link">Calendar</a>
+            <button class="btn-theme" id="themeToggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
             <button class="btn-logout" onclick="logout()">logout</button>
         </div>
     </nav>
@@ -379,6 +439,11 @@
                 <div class="stat-label">Rejected</div>
                 <div class="stat-value" id="statRejected">0</div>
             </div>
+            <div class="stat stat-streak">
+                <div class="stat-label">Streak</div>
+                <div class="stat-value" id="statStreak">0</div>
+                <div class="stat-sub">day streak 🔥</div>
+            </div>
         </div>
 
         <div class="weekly-goal-card">
@@ -407,14 +472,18 @@
             <div class="form-row-2">
                     <input type="text" id="notes" placeholder="notes (optional)" />
                     <input type="text" id="tags" placeholder="tags: remote, startup... (optional)" />
+                    <input type="text" id="salary" placeholder="salary (optional)" />
                     <button type="submit" class="btn-add">+ Add</button>
                 </div>
             </form>
         </div>
 
-        <div class="search-wrap">
-            <span class="search-icon">🔍</span>
-            <input type="text" id="searchInput" placeholder="search by company, role, status or date..." oninput="filterTable()" />
+        <div class="search-actions">
+            <div class="search-wrap">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" placeholder="search by company, role, status or date..." oninput="filterTable()" />
+            </div>
+            <button class="btn-export" onclick="exportCSV()">⬇ <span>Export CSV</span></button>
         </div>
 
         <div class="filter-bar">
@@ -489,8 +558,9 @@
                 </select>
                  <input type="date" id="editDate" />
                 <input type="url" id="editUrl" placeholder="job url (optional)" />
-                <input type="text" id="editNotes" placeholder="notes (optional)" />
+                <textarea id="editNotes" placeholder="notes — supports **markdown** (optional)" rows="4"></textarea>
                 <input type="text" id="editTags" placeholder="tags: remote, startup... (optional)" />
+                <input type="text" id="editSalary" placeholder="salary e.g. $120k (optional)" />
                 <div id="interviewDateWrap" style="display:none;">
                     <label style="font-size:11px; color:#6a9fd8; text-transform:uppercase; letter-spacing:0.6px; display:block; margin-bottom:6px;">Interview date</label>
                     <input type="date" id="editInterviewDate" style="border-color:#253050;" />
@@ -507,9 +577,10 @@
     <div class="popup">
         <h3>Application Details</h3>
         <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:1.5rem; text-align:left;">
-            <p style="color:#888; font-size:13px;">URL: <a id="detailsUrl" href="#" target="_blank" style="color:#7f77dd;"></a></p>
-            <p style="color:#888; font-size:13px;">Notes:</p>
-            <p id="detailsNotes" style="color:#ccc; font-size:13px; white-space:pre-wrap;"></p>
+            <p style="color:var(--text-muted); font-size:13px;">URL: <a id="detailsUrl" href="#" target="_blank" rel="noopener noreferrer" style="color:#7f77dd;"></a></p>
+            <p id="detailsSalary" style="color:var(--text-muted); font-size:13px;"></p>
+            <p style="color:var(--text-muted); font-size:13px;">Notes:</p>
+            <div id="detailsNotes" class="notes-rendered"></div>
         </div>
         <div class="popup-btns">
             <button class="btn-cancel" onclick="closeDetailsModal()">close</button>
@@ -529,6 +600,8 @@
     </nav>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

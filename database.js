@@ -28,6 +28,7 @@ async function init() {
     await pool.query(`ALTER TABLE applications ADD COLUMN IF NOT EXISTS notes TEXT`);
     await pool.query(`ALTER TABLE applications ADD COLUMN IF NOT EXISTS interview_date TEXT`);
     await pool.query(`ALTER TABLE applications ADD COLUMN IF NOT EXISTS tags TEXT`);
+    await pool.query(`ALTER TABLE applications ADD COLUMN IF NOT EXISTS salary TEXT`);
 }
 
 init();
