@@ -1,6 +1,6 @@
 {
-  "name": "Nimbus",
-  "short_name": "Nimbus",
+  "name": "Nymbus",
+  "short_name": "Nymbus",
   "description": "Track your job applications in one place",
   "start_url": "/dashboard",
   "display": "standalone",
