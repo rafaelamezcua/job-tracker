@@ -372,6 +372,13 @@
         .btn-confirm { background: #c46a6a; border: none; color: #fff; padding: 8px 24px; border-radius: 6px; cursor: pointer; font-size: 13px; }
         .btn-confirm:hover { background: #b05555; }
 
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border3); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-dimmer); }
+        * { scrollbar-width: thin; scrollbar-color: var(--border3) var(--bg); }
+
         /* MARKDOWN NOTES */
         .notes-rendered { color: var(--text); font-size: 13px; text-align: left; line-height: 1.7; }
         .notes-rendered h1, .notes-rendered h2, .notes-rendered h3 { color: var(--text-bright); margin: 0.5rem 0 0.25rem; font-size: 14px; }
