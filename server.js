@@ -14,21 +14,9 @@ if (!SECRET || SECRET.length < 32) {
     process.exit(1);
 }
 
-// Security headers
+// Security headers (CSP disabled — site uses inline scripts for animations)
 app.use(helmet({
-    contentSecurityPolicy: {
-        directives: {
-            defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "https://cdnjs.cloudflare.com", "https://www.googletagmanager.com", "'unsafe-inline'"],
-            scriptSrcElem: ["'self'", "https://cdnjs.cloudflare.com", "https://www.googletagmanager.com", "https://www.google-analytics.com"],
-            connectSrc: ["'self'", "https://www.google-analytics.com", "https://region1.google-analytics.com"],
-            imgSrc: ["'self'", "data:", "https://www.google-analytics.com"],
-            styleSrc: ["'self'", "'unsafe-inline'"],
-            fontSrc: ["'self'"],
-            frameSrc: ["'none'"],
-            objectSrc: ["'none'"],
-        }
-    },
+    contentSecurityPolicy: false,
     crossOriginEmbedderPolicy: false
 }));
 
