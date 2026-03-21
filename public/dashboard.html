@@ -222,18 +222,16 @@
         .btn-clear-range:hover { color: var(--text); border-color: var(--text-muted); }
 
         /* TABLE */
-        .table-wrap { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; transition: background 0.3s, border-color 0.3s; }
-        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        col.col-company { width: 22%; }
-        col.col-role    { width: 24%; }
-        col.col-tags    { width: 14%; }
-        col.col-status  { width: 13%; }
-        col.col-date    { width: 10%; }
-        col.col-actions { width: 17%; }
-        th { padding: 12px 18px; text-align: left; font-size: 11px; color: var(--text-dimmer); text-transform: uppercase; letter-spacing: 0.6px; border-bottom: 1px solid var(--border); }
+        .table-wrap { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; overflow-x: auto; transition: background 0.3s, border-color 0.3s; -webkit-overflow-scrolling: touch; }
+        table { width: 100%; border-collapse: collapse; min-width: 720px; }
+        th { padding: 12px 18px; text-align: left; font-size: 11px; color: var(--text-dimmer); text-transform: uppercase; letter-spacing: 0.6px; border-bottom: 1px solid var(--border); white-space: nowrap; }
         th:last-child { text-align: right; }
         td:last-child { text-align: right; }
-        td { padding: 13px 18px; font-size: 13px; color: var(--text-muted); border-bottom: 1px solid var(--border); transition: background 0.15s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        td { padding: 13px 18px; font-size: 13px; color: var(--text-muted); border-bottom: 1px solid var(--border); transition: background 0.15s; }
+        /* Truncate only company and role columns */
+        td:nth-child(1) { max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        td:nth-child(2) { max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        td:nth-child(5) { white-space: nowrap; }
         tr:last-child td { border-bottom: none; }
         tr:hover td { background: var(--table-hover); color: var(--text); }
         tr:hover .company-name { color: var(--text-bright); }
@@ -241,11 +239,11 @@
         .company-name a, .company-name > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         /* Company avatar (initials fallback) */
         .company-avatar {
-            width: 24px; height: 24px; border-radius: 6px; flex-shrink: 0;
+            width: 26px; height: 26px; border-radius: 6px; flex-shrink: 0;
             display: flex; align-items: center; justify-content: center;
-            font-size: 9px; font-weight: bold; color: #fff; text-transform: uppercase;
+            font-size: 10px; font-weight: bold; color: #fff; text-transform: uppercase;
         }
-        .company-logo { width: 24px; height: 24px; border-radius: 6px; object-fit: contain; flex-shrink: 0; }
+        .company-logo { width: 26px; height: 26px; border-radius: 6px; object-fit: contain; flex-shrink: 0; }
 
         .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
         .badge-Applied { background: #2a2820; color: #d4a847; border: 1px solid #3d3520; }
@@ -559,11 +557,7 @@
 
         <div class="table-wrap">
             <table>
-                <colgroup>
-                    <col class="col-company"><col class="col-role"><col class="col-tags">
-                    <col class="col-status"><col class="col-date"><col class="col-actions">
-                </colgroup>
-                <thead>
+<thead>
                     <tr>
                         <th>Company</th>
                         <th>Role</th>
