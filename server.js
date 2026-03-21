@@ -236,7 +236,7 @@ app.post('/register', authLimiter, async (req, res) => {
     }
 
     try {
-        const existing = await db.query('SELECT id FROM users WHERE email = $1', [email.toLowerCase()]);
+        const existing = await db.query('SELECT id FROM users WHERE LOWER(email) = $1', [email.toLowerCase()]);
         if (existing.rows[0]) {
             return res.status(409).json({ error: 'Email already registered' });
         }
@@ -261,7 +261,7 @@ app.post('/login', authLimiter, async (req, res) => {
     }
 
     try {
-        const result = await db.query('SELECT * FROM users WHERE email = $1', [email.toLowerCase()]);
+        const result = await db.query('SELECT * FROM users WHERE LOWER(email) = $1', [email.toLowerCase()]);
         const user = result.rows[0];
         if (!user) {
             return res.status(401).json({ error: 'Invalid email or password' });
