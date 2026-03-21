@@ -372,6 +372,39 @@
         .btn-confirm { background: #c46a6a; border: none; color: #fff; padding: 8px 24px; border-radius: 6px; cursor: pointer; font-size: 13px; }
         .btn-confirm:hover { background: #b05555; }
 
+        /* VIEW TOGGLE */
+        .view-toggle { display: flex; gap: 6px; margin-bottom: 1.25rem; }
+        .view-btn {
+            background: var(--bg2); border: 1px solid var(--border);
+            color: var(--text-dim); padding: 7px 18px; border-radius: 8px;
+            font-size: 13px; cursor: pointer; transition: all 0.2s;
+        }
+        .view-btn.active { background: #7f77dd22; border-color: #7f77dd; color: #7f77dd; }
+        .view-btn:hover:not(.active) { border-color: var(--border3); color: var(--text); }
+
+        /* KANBAN */
+        .kanban-board { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 1rem; -webkit-overflow-scrolling: touch; align-items: flex-start; }
+        .kanban-col { flex: 0 0 230px; display: flex; flex-direction: column; background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: background 0.3s, border-color 0.3s; }
+        .kanban-col-header { padding: 11px 14px; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.8px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); border-top: 3px solid; }
+        .kanban-col-count { background: var(--bg); border-radius: 20px; padding: 2px 8px; font-size: 11px; color: var(--text-dimmer); font-weight: normal; }
+        .kanban-cards { padding: 8px; display: flex; flex-direction: column; gap: 8px; flex: 1; min-height: 80px; transition: background 0.15s; border-radius: 0 0 12px 12px; }
+        .kanban-cards.drag-over { background: var(--bar-bg); }
+        .kanban-card {
+            background: var(--bg); border: 1px solid var(--border2);
+            border-radius: 9px; padding: 11px 12px; cursor: grab;
+            transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+            user-select: none;
+        }
+        .kanban-card:hover { border-color: var(--border3); box-shadow: 0 4px 14px #0005; transform: translateY(-2px); }
+        .kanban-card.dragging { opacity: 0.35; transform: scale(0.97); cursor: grabbing; }
+        .kanban-card-top { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+        .kanban-card-name { font-size: 13px; font-weight: bold; color: var(--text-bright); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .kanban-card-role { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 7px; }
+        .kanban-card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; }
+        .kanban-card-date { font-size: 11px; color: var(--text-dimmer); }
+        .kanban-card-salary { font-size: 11px; color: #5aad6a; font-weight: 500; }
+        .kanban-empty { text-align: center; padding: 20px 10px; color: var(--border3); font-size: 12px; }
+
         /* SCROLLBAR */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: var(--bg); }
@@ -524,6 +557,12 @@
             </form>
         </div>
 
+        <div class="view-toggle">
+            <button class="view-btn active" id="btnTableView" onclick="setView('table')">☰ Table</button>
+            <button class="view-btn" id="btnKanbanView" onclick="setView('kanban')">⊞ Kanban</button>
+        </div>
+
+        <div id="tableView">
         <div class="search-actions">
             <div class="search-wrap">
                 <span class="search-icon">🔍</span>
@@ -577,7 +616,13 @@
                 <tbody id="applicationsList"></tbody>
             </table>
         </div>
-    </div>
+        </div><!-- end #tableView -->
+
+        <div id="kanbanView" style="display:none;">
+            <div id="kanbanBoard" class="kanban-board"></div>
+        </div>
+
+    </div><!-- end .container -->
 
     <div class="overlay" id="deleteOverlay">
         <div class="popup">

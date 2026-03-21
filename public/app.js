@@ -141,6 +141,139 @@ function updateStats() {
     }
 }
 
+// ── View toggle (Table / Kanban) ──────────────────────────────────
+let currentView = localStorage.getItem('view') || 'table';
+
+function setView(view) {
+    currentView = view;
+    localStorage.setItem('view', view);
+    const isKanban = view === 'kanban';
+    document.getElementById('tableView').style.display = isKanban ? 'none' : 'block';
+    document.getElementById('kanbanView').style.display = isKanban ? 'block' : 'none';
+    document.getElementById('btnTableView').classList.toggle('active', !isKanban);
+    document.getElementById('btnKanbanView').classList.toggle('active', isKanban);
+    if (isKanban) renderKanban(); else filterTable();
+}
+
+// ── Kanban ────────────────────────────────────────────────────────
+const KANBAN_COLS = [
+    { status: 'Saved',      color: '#7f77dd' },
+    { status: 'Applied',    color: '#d4a847' },
+    { status: 'Interview',  color: '#6a9fd8' },
+    { status: 'Offer',      color: '#5aad6a' },
+    { status: 'Rejected',   color: '#c46a6a' },
+    { status: 'Withdrawn',  color: '#888888' },
+];
+
+function renderKanban() {
+    const board = document.getElementById('kanbanBoard');
+    board.innerHTML = '';
+
+    KANBAN_COLS.forEach(({ status, color }) => {
+        const apps = allApplications.filter(a => a.status === status);
+
+        const col = document.createElement('div');
+        col.className = 'kanban-col';
+
+        const header = document.createElement('div');
+        header.className = 'kanban-col-header';
+        header.style.borderTopColor = color;
+        header.style.color = color;
+        header.innerHTML = `${status} <span class="kanban-col-count">${apps.length}</span>`;
+        col.appendChild(header);
+
+        const cardsEl = document.createElement('div');
+        cardsEl.className = 'kanban-cards';
+        cardsEl.id = `kanban-${status}`;
+
+        cardsEl.addEventListener('dragover', e => { e.preventDefault(); cardsEl.classList.add('drag-over'); });
+        cardsEl.addEventListener('dragleave', () => cardsEl.classList.remove('drag-over'));
+        cardsEl.addEventListener('drop', async e => {
+            e.preventDefault();
+            cardsEl.classList.remove('drag-over');
+            const id = parseInt(e.dataTransfer.getData('appId'));
+            const oldStatus = e.dataTransfer.getData('oldStatus');
+            if (oldStatus === status) return;
+            const app = allApplications.find(a => a.id === id);
+            if (!app) return;
+            await fetch(`/applications/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'authorization': token },
+                body: JSON.stringify({ ...app, status })
+            });
+            if (status === 'Offer') fireConfetti();
+            loadApplications();
+        });
+
+        if (apps.length === 0) {
+            cardsEl.innerHTML = `<div class="kanban-empty">Drop here</div>`;
+        } else {
+            apps.forEach(app => cardsEl.appendChild(createKanbanCard(app)));
+        }
+
+        col.appendChild(cardsEl);
+        board.appendChild(col);
+    });
+
+    anime({ targets: '.kanban-col', opacity: [0, 1], translateY: [12, 0], delay: anime.stagger(60), duration: 300, easing: 'easeOutQuad' });
+}
+
+function createKanbanCard(app) {
+    const card = document.createElement('div');
+    card.className = 'kanban-card';
+    card.draggable = true;
+
+    const avatarColors = ['#7f77dd','#5aad6a','#d4a847','#6a9fd8','#c46a6a','#f0a070','#a06ad8','#5ab8c4'];
+    const avatarColor = avatarColors[app.company.charCodeAt(0) % avatarColors.length];
+    const initials = app.company.trim().split(/\s+/).map(w => w[0]).join('').substring(0, 2).toUpperCase();
+
+    const tagChips = app.tags
+        ? app.tags.split(',').map(t => t.trim()).filter(Boolean)
+            .map(t => `<span class="tag-chip" style="font-size:10px;padding:2px 7px;">${escapeHtml(t)}</span>`).join('')
+        : '';
+
+    card.innerHTML = `
+        <div class="kanban-card-top">
+            <div class="company-avatar" style="background:${avatarColor};width:22px;height:22px;font-size:9px;border-radius:5px;">${initials}</div>
+            <span class="kanban-card-name">${escapeHtml(app.company)}</span>
+        </div>
+        <div class="kanban-card-role">${escapeHtml(app.role)}</div>
+        ${tagChips ? `<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;">${tagChips}</div>` : ''}
+        <div class="kanban-card-footer">
+            <span class="kanban-card-date">${escapeHtml(formatDate(app.date))}</span>
+            ${app.salary ? `<span class="kanban-card-salary">${escapeHtml(app.salary)}</span>` : ''}
+        </div>
+        <div style="display:flex;gap:5px;margin-top:8px;">
+            <button class="btn-edit" style="padding:4px 10px;font-size:11px;margin:0;flex:1;">Edit</button>
+            <button class="btn-details" style="padding:4px 10px;font-size:11px;margin:0;flex:1;">Details</button>
+        </div>
+    `;
+
+    card.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('appId', app.id);
+        e.dataTransfer.setData('oldStatus', app.status);
+        setTimeout(() => card.classList.add('dragging'), 0);
+    });
+    card.addEventListener('dragend', () => card.classList.remove('dragging'));
+    card.querySelector('.btn-edit').addEventListener('click', () => openEditModal(app));
+    card.querySelector('.btn-details').addEventListener('click', () => openDetailsModal(app));
+
+    // Try Clearbit logo
+    const validUrl = safeUrl(app.url);
+    const domain = validUrl ? (() => { try { return new URL(validUrl).hostname.replace(/^www\./, ''); } catch { return null; } })() : null;
+    if (domain) {
+        const avatar = card.querySelector('.company-avatar');
+        const img = new Image();
+        img.className = 'company-logo';
+        img.style.cssText = 'width:22px;height:22px;border-radius:5px;';
+        img.loading = 'lazy';
+        img.onload = () => { if (avatar && avatar.parentNode) avatar.replaceWith(img); };
+        img.src = `https://logo.clearbit.com/${domain}`;
+    }
+
+    return card;
+}
+
 // ── Streak counter ────────────────────────────────────────────────
 function calculateStreak() {
     if (!allApplications.length) return 0;
