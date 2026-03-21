@@ -326,9 +326,8 @@ function renderTable(applications) {
         const avatarColors = ['#7f77dd','#5aad6a','#d4a847','#6a9fd8','#c46a6a','#f0a070','#a06ad8','#5ab8c4'];
         const avatarColor = avatarColors[app.company.charCodeAt(0) % avatarColors.length];
         const initials = app.company.trim().split(/\s+/).map(w => w[0]).join('').substring(0, 2).toUpperCase();
-        const logoHtml = domain
-            ? `<img class="company-logo" src="https://logo.clearbit.com/${escapeHtml(domain)}" onerror="this.outerHTML='<div class=\\"company-avatar\\" style=\\"background:${avatarColor}\\">${initials}</div>'" loading="lazy" alt="">`
-            : `<div class="company-avatar" style="background:${avatarColor}">${initials}</div>`;
+        // Always render initials avatar — replace with Clearbit logo via DOM after row is created
+        const logoHtml = `<div class="company-avatar" style="background:${avatarColor}">${initials}</div>`;
         const row = document.createElement('tr');
         row.style.opacity = '0';
         row.style.transform = 'translateY(6px)';
@@ -353,6 +352,16 @@ function renderTable(applications) {
         row.querySelector('.btn-delete').addEventListener('click', () => deleteApplication(app.id, row));
         row.querySelector('.btn-edit').addEventListener('click', () => openEditModal(app));
         list.appendChild(row);
+
+        // Try to load Clearbit logo and swap out the initials avatar if it loads
+        if (domain) {
+            const avatar = row.querySelector('.company-avatar');
+            const img = new Image();
+            img.className = 'company-logo';
+            img.loading = 'lazy';
+            img.onload = () => { if (avatar && avatar.parentNode) avatar.replaceWith(img); };
+            img.src = `https://logo.clearbit.com/${domain}`;
+        }
         rows.push(row);
     });
 
