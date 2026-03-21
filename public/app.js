@@ -323,7 +323,12 @@ function renderTable(applications) {
 
         const validUrl = safeUrl(app.url);
         const domain = validUrl ? (() => { try { return new URL(validUrl).hostname.replace(/^www\./, ''); } catch { return null; } })() : null;
-        const logoHtml = domain ? `<img class="company-logo" src="https://logo.clearbit.com/${escapeHtml(domain)}" onerror="this.style.display='none'" loading="lazy" alt="">` : '';
+        const avatarColors = ['#7f77dd','#5aad6a','#d4a847','#6a9fd8','#c46a6a','#f0a070','#a06ad8','#5ab8c4'];
+        const avatarColor = avatarColors[app.company.charCodeAt(0) % avatarColors.length];
+        const initials = app.company.trim().split(/\s+/).map(w => w[0]).join('').substring(0, 2).toUpperCase();
+        const logoHtml = domain
+            ? `<img class="company-logo" src="https://logo.clearbit.com/${escapeHtml(domain)}" onerror="this.outerHTML='<div class=\\"company-avatar\\" style=\\"background:${avatarColor}\\">${initials}</div>'" loading="lazy" alt="">`
+            : `<div class="company-avatar" style="background:${avatarColor}">${initials}</div>`;
         const row = document.createElement('tr');
         row.style.opacity = '0';
         row.style.transform = 'translateY(6px)';

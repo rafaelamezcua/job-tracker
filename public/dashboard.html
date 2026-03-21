@@ -223,16 +223,29 @@
 
         /* TABLE */
         .table-wrap { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; transition: background 0.3s, border-color 0.3s; }
-        table { width: 100%; border-collapse: collapse; }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        col.col-company { width: 22%; }
+        col.col-role    { width: 24%; }
+        col.col-tags    { width: 14%; }
+        col.col-status  { width: 13%; }
+        col.col-date    { width: 10%; }
+        col.col-actions { width: 17%; }
         th { padding: 12px 18px; text-align: left; font-size: 11px; color: var(--text-dimmer); text-transform: uppercase; letter-spacing: 0.6px; border-bottom: 1px solid var(--border); }
         th:last-child { text-align: right; }
         td:last-child { text-align: right; }
-        td { padding: 14px 18px; font-size: 13px; color: var(--text-muted); border-bottom: 1px solid var(--border); transition: background 0.15s; }
+        td { padding: 13px 18px; font-size: 13px; color: var(--text-muted); border-bottom: 1px solid var(--border); transition: background 0.15s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         tr:last-child td { border-bottom: none; }
         tr:hover td { background: var(--table-hover); color: var(--text); }
         tr:hover .company-name { color: var(--text-bright); }
-        .company-name { color: var(--text-bright); font-weight: bold; display: flex; align-items: center; gap: 8px; }
-        .company-logo { width: 18px; height: 18px; border-radius: 4px; object-fit: contain; flex-shrink: 0; }
+        .company-name { color: var(--text-bright); font-weight: bold; display: flex; align-items: center; gap: 8px; min-width: 0; }
+        .company-name a, .company-name > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        /* Company avatar (initials fallback) */
+        .company-avatar {
+            width: 24px; height: 24px; border-radius: 6px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 9px; font-weight: bold; color: #fff; text-transform: uppercase;
+        }
+        .company-logo { width: 24px; height: 24px; border-radius: 6px; object-fit: contain; flex-shrink: 0; }
 
         .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
         .badge-Applied { background: #2a2820; color: #d4a847; border: 1px solid #3d3520; }
@@ -372,31 +385,59 @@
 
         /* MOBILE */
         @media (max-width: 640px) {
-            nav { padding: 0.85rem 1.25rem; }
+            nav { padding: 0.85rem 1.1rem; }
             .nav-greeting { display: none; }
-            .container { padding: 1.25rem 1rem; padding-bottom: 80px; }
-            .stats { grid-template-columns: repeat(3, 1fr); }
-            .stat-value { font-size: 20px; }
-            .stat { padding: 12px 14px; }
-            .form-row { grid-template-columns: 1fr 1fr; }
+            .btn-theme { padding: 5px 8px; font-size: 13px; }
+            .container { padding: 1rem 0.85rem; padding-bottom: 84px; }
+
+            /* Stats: 3-col on mobile */
+            .stats { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+            .stat-value { font-size: 22px; }
+            .stat { padding: 10px 12px; }
+            .stat-label { font-size: 10px; }
+            .stat-sub { font-size: 9px; }
+
+            /* Weekly goal */
+            .weekly-goal-card { gap: 10px; padding: 12px 14px; }
+            .weekly-goal-label { font-size: 10px; }
+
+            /* Form: 2-col grid */
+            .add-form { padding: 1rem; }
+            .form-row { grid-template-columns: 1fr 1fr; gap: 8px; }
             .form-row input[type="url"] { grid-column: 1 / -1; }
             .form-row select { grid-column: 1; }
             .form-row input[type="date"] { grid-column: 2; }
             .form-row button { display: none; }
-            .form-row-2 { grid-template-columns: 1fr 1fr; }
+            .form-row-2 { grid-template-columns: 1fr 1fr; gap: 8px; }
+            .form-row-2 input[placeholder*="salary"] { grid-column: 1 / -1; }
             .form-row-2 .btn-add { grid-column: 1 / -1; width: 100%; }
-            .table-wrap { overflow-x: auto; }
-            th:nth-child(3), td:nth-child(3),
-            th:nth-child(5), td:nth-child(5) { display: none; }
-            td { padding: 10px 12px; font-size: 12px; }
-            th { padding: 10px 12px; }
-            .btn-details { display: none; }
-            .weekly-goal-card { gap: 12px; }
+
+            /* Search */
+            .search-actions { gap: 6px; }
+            .btn-export span { display: none; }
+            .btn-export { padding: 10px 12px; }
+
+            /* Filters */
             .filter-bar { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; scrollbar-width: none; }
             .filter-bar::-webkit-scrollbar { display: none; }
             .custom-range-wrap { flex-direction: column; align-items: flex-start; gap: 6px; }
+
+            /* Table: switch to card layout */
+            .table-wrap { border-radius: 10px; overflow: hidden; }
+            table { table-layout: auto; }
+            thead { display: none; }
+            tbody tr { display: flex; flex-direction: column; padding: 12px 14px; border-bottom: 1px solid var(--border); gap: 5px; }
+            tbody tr:last-child { border-bottom: none; }
+            tbody td { display: block; padding: 0; border: none; font-size: 13px; white-space: normal; overflow: visible; text-overflow: clip; text-align: left !important; }
+            .company-name { font-size: 14px; margin-bottom: 2px; }
+            tbody td:nth-child(2) { color: var(--text-muted); font-size: 12px; }
+            tbody td:nth-child(3) { order: 3; }
+            tbody td:nth-child(4) { order: 2; }
+            tbody td:nth-child(5) { display: none; }
+            tbody td:nth-child(6) { order: 4; margin-top: 4px; }
+            tbody td:nth-child(6) div { justify-content: flex-start !important; }
+
             .bottom-nav { display: flex; }
-            .btn-export span { display: none; }
         }
     </style>
 </head>
@@ -518,6 +559,10 @@
 
         <div class="table-wrap">
             <table>
+                <colgroup>
+                    <col class="col-company"><col class="col-role"><col class="col-tags">
+                    <col class="col-status"><col class="col-date"><col class="col-actions">
+                </colgroup>
                 <thead>
                     <tr>
                         <th>Company</th>
