@@ -234,18 +234,18 @@ function createKanbanCard(app) {
 
     card.innerHTML = `
         <div class="kanban-card-top">
-            <div class="company-avatar" style="background:${avatarColor};width:22px;height:22px;font-size:9px;border-radius:5px;">${initials}</div>
+            <div class="company-avatar" style="background:${avatarColor};width:20px;height:20px;font-size:8px;border-radius:4px;flex-shrink:0;">${initials}</div>
             <span class="kanban-card-name">${escapeHtml(app.company)}</span>
         </div>
         <div class="kanban-card-role">${escapeHtml(app.role)}</div>
-        ${tagChips ? `<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;">${tagChips}</div>` : ''}
         <div class="kanban-card-footer">
             <span class="kanban-card-date">${escapeHtml(formatDate(app.date))}</span>
             ${app.salary ? `<span class="kanban-card-salary">${escapeHtml(app.salary)}</span>` : ''}
         </div>
-        <div style="display:flex;gap:5px;margin-top:8px;">
-            <button class="btn-edit" style="padding:4px 10px;font-size:11px;margin:0;flex:1;">Edit</button>
-            <button class="btn-details" style="padding:4px 10px;font-size:11px;margin:0;flex:1;">Details</button>
+        ${tagChips ? `<div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:4px;">${tagChips}</div>` : ''}
+        <div class="kanban-card-actions">
+            <button class="btn-edit" style="padding:3px 10px;font-size:11px;margin:0;flex:1;">Edit</button>
+            <button class="btn-details" style="padding:3px 10px;font-size:11px;margin:0;flex:1;">Details</button>
         </div>
     `;
 
