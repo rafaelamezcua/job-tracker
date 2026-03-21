@@ -2,6 +2,28 @@ const token = localStorage.getItem('token');
 const userName = localStorage.getItem('userName');
 document.getElementById('userGreeting').textContent = userName || 'there';
 
+// Safely escape HTML to prevent XSS when inserting user data into innerHTML
+function escapeHtml(str) {
+    if (str == null) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+// Validate URL is safe (http/https only, no javascript: URIs)
+function safeUrl(url) {
+    if (!url) return null;
+    try {
+        const u = new URL(url);
+        return (u.protocol === 'http:' || u.protocol === 'https:') ? url : null;
+    } catch {
+        return null;
+    }
+}
+
 if (!token) window.location.href = '/login';
 
 let allApplications = [];
@@ -230,20 +252,21 @@ function renderTable(applications) {
 
     const rows = [];
     applications.forEach(app => {
-        const tagChips = app.tags
+        const tagChipEls = app.tags
             ? app.tags.split(',').map(t => t.trim()).filter(Boolean)
-                .map(t => `<span class="tag-chip" onclick="filterByTag('${t.replace(/'/g, "\\'")}')">${t}</span>`).join('')
+                .map(t => `<span class="tag-chip" data-tag="${escapeHtml(t)}">${escapeHtml(t)}</span>`).join('')
             : '<span style="color:#2a2a2a; font-size:11px;">—</span>';
 
+        const validUrl = safeUrl(app.url);
         const row = document.createElement('tr');
         row.style.opacity = '0';
         row.style.transform = 'translateY(6px)';
         row.innerHTML = `
-            <td class="company-name">${app.url ? `<a href="${app.url}" target="_blank" style="color:inherit; text-decoration:none;">${app.company}</a>` : app.company}</td>
-            <td>${app.role}</td>
-            <td><div class="tag-chips">${tagChips}</div></td>
-            <td><span class="badge badge-${app.status}">${app.status.toLowerCase()}</span></td>
-            <td>${formatDate(app.date)}</td>
+            <td class="company-name">${validUrl ? `<a href="${escapeHtml(validUrl)}" target="_blank" rel="noopener noreferrer" style="color:inherit; text-decoration:none;">${escapeHtml(app.company)}</a>` : escapeHtml(app.company)}</td>
+            <td>${escapeHtml(app.role)}</td>
+            <td><div class="tag-chips">${tagChipEls}</div></td>
+            <td><span class="badge badge-${escapeHtml(app.status)}">${escapeHtml(app.status.toLowerCase())}</span></td>
+            <td>${escapeHtml(formatDate(app.date))}</td>
             <td>
                 <div style="display:flex; gap:6px; justify-content:flex-end;">
                     <button class="btn-details">Details</button>
@@ -252,6 +275,9 @@ function renderTable(applications) {
                 </div>
             </td>
         `;
+        row.querySelectorAll('.tag-chip').forEach(chip => {
+            chip.addEventListener('click', () => filterByTag(chip.dataset.tag));
+        });
         row.querySelector('.btn-details').addEventListener('click', () => openDetailsModal(app));
         row.querySelector('.btn-delete').addEventListener('click', () => deleteApplication(app.id, row));
         row.querySelector('.btn-edit').addEventListener('click', () => openEditModal(app));

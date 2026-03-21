@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Job Tracker — Login</title>
+    <!-- Google Analytics — replace G-MX3WTKFV32 with your Measurement ID from analytics.google.com -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-MX3WTKFV32"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-MX3WTKFV32');
+    </script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background: #111; font-family: Arial, sans-serif; color: #ccc; min-height: 100vh; display: flex; justify-content: center; align-items: center; }
@@ -48,36 +56,44 @@
     </div>
 
     <script>
+        function showError(msg, success = false) {
+            const el = document.getElementById('error');
+            el.style.color = success ? '#5aad6a' : '#c46a6a';
+            el.textContent = msg;
+        }
+
         async function login() {
-    document.getElementById('nameField').style.display = 'none';
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
+            document.getElementById('nameField').style.display = 'none';
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
 
-    const res = await fetch('/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-    });
+            if (!email || !password) { showError('please fill in all fields'); return; }
 
-    const data = await res.json();
-    if (data.error) {
-        document.getElementById('error').textContent = data.error;
-    } else {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('userName', data.name);
-        window.location.href = '/dashboard';
-    }
-}
+            const res = await fetch('/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await res.json();
+            if (data.error) {
+                showError(data.error);
+            } else {
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('userName', data.name);
+                window.location.href = '/dashboard';
+            }
+        }
 
         async function register() {
-             document.getElementById('nameField').style.display = 'block';
-             const name = document.getElementById('name').value;
-             if (!name) {
-                 document.getElementById('error').textContent = 'please enter your name';
-                 return;
-    }
-            const email = document.getElementById('email').value;
+            document.getElementById('nameField').style.display = 'block';
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
+
+            if (!name) { showError('please enter your name'); return; }
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showError('please enter a valid email'); return; }
+            if (password.length < 8) { showError('password must be at least 8 characters'); return; }
 
             const res = await fetch('/register', {
                 method: 'POST',
@@ -87,10 +103,9 @@
 
             const data = await res.json();
             if (data.error) {
-                document.getElementById('error').textContent = data.error;
+                showError(data.error);
             } else {
-                document.getElementById('error').style.color = '#5aad6a';
-                document.getElementById('error').textContent = 'account created! please login.';
+                showError('account created! please login.', true);
             }
         }
     </script>
