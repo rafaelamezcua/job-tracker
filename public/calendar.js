@@ -8,7 +8,6 @@ let allApplications = [];
 
 // ── Page fade-in + navigation fade-out ───────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-    document.body.style.opacity = '1';
 
     document.querySelectorAll('a[href]').forEach(a => {
         const href = a.getAttribute('href');

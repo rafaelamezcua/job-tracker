@@ -48,22 +48,12 @@ let pendingDeleteRow = null;
 
 // ── Page fade-in + navigation fade-out ───────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-    // Always make body visible — CSS animation handles the fade-in
-    document.body.style.opacity = '1';
-
     document.querySelectorAll('a[href]').forEach(a => {
         const href = a.getAttribute('href');
         if (href && href.startsWith('/') && !href.includes('#')) {
             a.addEventListener('click', e => {
                 e.preventDefault();
-                if (typeof anime !== 'undefined') {
-                    anime({
-                        targets: 'body', opacity: 0, duration: 250, easing: 'easeInQuad',
-                        complete: () => { window.location.href = href; }
-                    });
-                } else {
-                    window.location.href = href;
-                }
+                window.location.href = href;
             });
         }
     });
