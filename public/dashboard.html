@@ -490,6 +490,15 @@
         <div class="nav-right">
             <span class="nav-greeting">Hey, <span id="userGreeting"></span> !👋</span>
             <a href="/calendar" class="nav-link">Calendar</a>
+            <a id="bookmarklet-btn"
+               href="javascript:(function(){var u=encodeURIComponent(location.href),t=encodeURIComponent(document.title);window.open('https://nymbus.pro/quick-save?url='+u+'&title='+t,'_blank','width=440,height=540,toolbar=0,menubar=0,location=0,resizable=1');})();"
+               onclick="return false;"
+               draggable="true"
+               title="Drag to your bookmarks bar to save jobs from any site in one click"
+               class="nav-link"
+               style="border:1.5px dashed #7f77dd;border-radius:7px;padding:4px 10px;color:#7f77dd;white-space:nowrap;cursor:grab;">
+                ⚡ Save to Nymbus
+            </a>
             <button class="btn-theme" id="themeToggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
             <button class="btn-logout" onclick="logout()">logout</button>
         </div>
@@ -561,20 +570,9 @@
             </form>
         </div>
 
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:0;">
-            <div class="view-toggle" style="margin-bottom:0;">
-                <button class="view-btn active" id="btnTableView" onclick="setView('table')">☰ Table</button>
-                <button class="view-btn" id="btnKanbanView" onclick="setView('kanban')">⊞ Kanban</button>
-            </div>
-            <a id="bookmarklet-btn"
-               href="javascript:(function(){var u=encodeURIComponent(location.href),t=encodeURIComponent(document.title);window.open('https://nymbus.pro/quick-save?url='+u+'&title='+t,'_blank','width=440,height=540,toolbar=0,menubar=0,location=0,resizable=1');})();"
-               onclick="return false;"
-               draggable="true"
-               title="Drag this to your bookmarks bar to save jobs in one click from any site"
-               style="display:inline-flex;align-items:center;gap:7px;background:#1e1a3a;border:1.5px dashed #7f77dd;color:#7f77dd;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:grab;text-decoration:none;white-space:nowrap;user-select:none;">
-                ⚡ Save to Nymbus
-                <span style="font-size:10px;color:#555;font-weight:400;">← drag to bookmarks bar</span>
-            </a>
+        <div class="view-toggle">
+            <button class="view-btn active" id="btnTableView" onclick="setView('table')">☰ Table</button>
+            <button class="view-btn" id="btnKanbanView" onclick="setView('kanban')">⊞ Kanban</button>
         </div>
 
         <div id="tableView">

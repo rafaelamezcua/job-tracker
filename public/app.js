@@ -701,6 +701,12 @@ function closeDetailsModal() {
 
 loadApplications();
 
+// ── Auto-refresh when bookmarklet saves a job ─────────────────────
+if ('BroadcastChannel' in window) {
+    const bc = new BroadcastChannel('nymbus-saved');
+    bc.onmessage = () => loadApplications();
+}
+
 // ── PWA Service Worker ────────────────────────────────────────────
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(() => {});
