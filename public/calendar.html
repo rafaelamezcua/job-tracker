@@ -28,7 +28,8 @@
             --nav-bg:#fff;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: var(--bg); font-family: Arial, sans-serif; color: var(--text); min-height: 100vh; opacity: 0; transition: background 0.3s, color 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        body { background: var(--bg); font-family: Arial, sans-serif; color: var(--text); min-height: 100vh; animation: fadeIn 0.35s ease forwards; transition: background 0.3s, color 0.3s; }
 
         nav {
             display: flex; justify-content: space-between; align-items: center;

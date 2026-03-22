@@ -9,20 +9,20 @@ let allApplications = [];
 // ── Page fade-in + navigation fade-out ───────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     document.body.style.opacity = '1';
-    if (typeof anime !== 'undefined') {
-        document.body.style.opacity = '0';
-        anime({ targets: 'body', opacity: [0, 1], duration: 400, easing: 'easeOutQuad' });
-    }
 
     document.querySelectorAll('a[href]').forEach(a => {
         const href = a.getAttribute('href');
         if (href && href.startsWith('/') && !href.includes('#')) {
             a.addEventListener('click', e => {
                 e.preventDefault();
-                anime({
-                    targets: 'body', opacity: 0, duration: 250, easing: 'easeInQuad',
-                    complete: () => { window.location.href = href; }
-                });
+                if (typeof anime !== 'undefined') {
+                    anime({
+                        targets: 'body', opacity: 0, duration: 250, easing: 'easeInQuad',
+                        complete: () => { window.location.href = href; }
+                    });
+                } else {
+                    window.location.href = href;
+                }
             });
         }
     });
