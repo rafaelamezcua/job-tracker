@@ -79,6 +79,7 @@ async function loadApplications() {
     const res = await fetch('/applications', { headers: { 'authorization': token } });
     const data = await res.json();
     allApplications = Array.isArray(data) ? data : [];
+    lastKnownCount = allApplications.length;
     updateStats();
     renderTable(allApplications);
 }
@@ -702,9 +703,25 @@ function closeDetailsModal() {
 loadApplications();
 
 // ── Auto-refresh when bookmarklet saves a job ─────────────────────
+// localStorage event (cross-tab, fires when another window saves)
 window.addEventListener('storage', (e) => {
     if (e.key === 'nymbus-last-saved') loadApplications();
 });
+
+// Polling fallback — silently checks every 15s for new applications
+let lastKnownCount = 0;
+setInterval(async () => {
+    if (document.hidden) return;
+    try {
+        const res = await fetch('/applications', { headers: { 'authorization': token } });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.length !== lastKnownCount) {
+            lastKnownCount = data.length;
+            loadApplications();
+        }
+    } catch {}
+}, 15000);
 
 // ── PWA Service Worker ────────────────────────────────────────────
 if ('serviceWorker' in navigator) {
