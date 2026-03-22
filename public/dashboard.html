@@ -225,8 +225,6 @@
         .table-wrap { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; overflow-x: auto; transition: background 0.3s, border-color 0.3s; -webkit-overflow-scrolling: touch; }
         table { width: 100%; border-collapse: collapse; min-width: 720px; }
         th { padding: 12px 18px; text-align: left; font-size: 11px; color: var(--text-dimmer); text-transform: uppercase; letter-spacing: 0.6px; border-bottom: 1px solid var(--border); white-space: nowrap; }
-        th:last-child { text-align: right; }
-        td:last-child { text-align: right; }
         td { padding: 13px 18px; font-size: 13px; color: var(--text-muted); border-bottom: 1px solid var(--border); transition: background 0.15s; }
         /* Truncate only company and role columns */
         td:nth-child(1) { max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -252,6 +250,12 @@
         .badge-Rejected { background: #2e1e1e; color: #c46a6a; border: 1px solid #3d2525; }
         .badge-Withdrawn { background: #252525; color: #888; border: 1px solid #333; }
         .badge-Saved { background: #1e1e35; color: #7f77dd; border: 1px solid #2a2a50; }
+        [data-theme="light"] .badge-Applied { background: #fdf6e0; border-color: #e8cc80; }
+        [data-theme="light"] .badge-Interview { background: #e8f2fc; border-color: #90b8e0; }
+        [data-theme="light"] .badge-Offer { background: #e8f5ec; border-color: #90cc90; }
+        [data-theme="light"] .badge-Rejected { background: #fbe8e8; border-color: #e09090; }
+        [data-theme="light"] .badge-Withdrawn { background: #f0f0f0; border-color: #ccc; color: #666; }
+        [data-theme="light"] .badge-Saved { background: #f0eeff; border-color: #b0a8ee; }
 
         select.status-sel {
             background: var(--input-bg); border: 1px solid var(--border2); border-radius: 6px;
