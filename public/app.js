@@ -75,7 +75,7 @@ async function loadApplications() {
     const data = await res.json();
     allApplications = Array.isArray(data) ? data : [];
     lastKnownCount = allApplications.length;
-    updateStats();
+    try { updateStats(); } catch (e) { console.warn('stats update failed', e); }
     renderTable(allApplications);
 }
 
@@ -93,7 +93,8 @@ function updateWeeklyGoal() {
     document.getElementById('weeklyGoalBtn').textContent = `Goal: ${weeklyGoal}`;
     const fill = document.getElementById('weeklyFill');
     fill.style.background = pct >= 100 ? '#5aad6a' : pct >= 60 ? '#d4a847' : '#7f77dd';
-    anime({ targets: fill, width: pct + '%', duration: 900, easing: 'easeOutQuart' });
+    if (typeof anime !== 'undefined') anime({ targets: fill, width: pct + '%', duration: 900, easing: 'easeOutQuart' });
+    else fill.style.width = pct + '%';
 }
 
 function editWeeklyGoal() {
@@ -119,11 +120,12 @@ function updateStats() {
         const el = document.getElementById(id);
         const from = parseInt(el.textContent) || 0;
         if (from === target) return;
-        const obj = { n: from };
-        anime({
-            targets: obj, n: target, round: 1, duration: 500, easing: 'easeOutQuad',
-            update() { el.textContent = obj.n; }
-        });
+        if (typeof anime !== 'undefined') {
+            const obj = { n: from };
+            anime({ targets: obj, n: target, round: 1, duration: 500, easing: 'easeOutQuad', update() { el.textContent = obj.n; } });
+        } else {
+            el.textContent = target;
+        }
     });
     updateWeeklyGoal();
     const streak = calculateStreak();
@@ -131,8 +133,12 @@ function updateStats() {
     if (streakEl) {
         const from = parseInt(streakEl.textContent) || 0;
         if (from !== streak) {
-            const obj = { n: from };
-            anime({ targets: obj, n: streak, round: 1, duration: 500, easing: 'easeOutQuad', update() { streakEl.textContent = obj.n; } });
+            if (typeof anime !== 'undefined') {
+                const obj = { n: from };
+                anime({ targets: obj, n: streak, round: 1, duration: 500, easing: 'easeOutQuad', update() { streakEl.textContent = obj.n; } });
+            } else {
+                streakEl.textContent = streak;
+            }
         }
     }
 }
@@ -458,8 +464,7 @@ function renderTable(applications) {
         // Always render initials avatar — replace with Clearbit logo via DOM after row is created
         const logoHtml = `<div class="company-avatar" style="background:${avatarColor}">${initials}</div>`;
         const row = document.createElement('tr');
-        row.style.opacity = '0';
-        row.style.transform = 'translateY(6px)';
+        if (typeof anime !== 'undefined') { row.style.opacity = '0'; row.style.transform = 'translateY(6px)'; }
         row.innerHTML = `
             <td class="company-name">${logoHtml}${validUrl ? `<a href="${escapeHtml(validUrl)}" target="_blank" rel="noopener noreferrer" style="color:inherit; text-decoration:none;">${escapeHtml(app.company)}</a>` : escapeHtml(app.company)}</td>
             <td>${escapeHtml(app.role)}</td>
@@ -495,14 +500,9 @@ function renderTable(applications) {
     });
 
     // Stagger rows in
-    anime({
-        targets: rows,
-        opacity: [0, 1],
-        translateY: [6, 0],
-        delay: anime.stagger(35),
-        duration: 280,
-        easing: 'easeOutQuad'
-    });
+    if (typeof anime !== 'undefined') {
+        anime({ targets: rows, opacity: [0, 1], translateY: [6, 0], delay: anime.stagger(35), duration: 280, easing: 'easeOutQuad' });
+    }
 
     // Flash newly added row
     if (lastAddedId !== null) {
@@ -517,16 +517,9 @@ function renderTable(applications) {
 
     // Tag chip pop-in
     const chips = list.querySelectorAll('.tag-chip');
-    if (chips.length) {
+    if (chips.length && typeof anime !== 'undefined') {
         chips.forEach(c => { c.style.opacity = '0'; c.style.transform = 'scale(0.65)'; });
-        anime({
-            targets: chips,
-            opacity: [0, 1],
-            scale: [0.65, 1],
-            delay: anime.stagger(25, { start: 120 }),
-            duration: 240,
-            easing: 'easeOutBack'
-        });
+        anime({ targets: chips, opacity: [0, 1], scale: [0.65, 1], delay: anime.stagger(25, { start: 120 }), duration: 240, easing: 'easeOutBack' });
     }
 }
 
