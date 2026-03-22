@@ -32,6 +32,8 @@
             --nav-bg:#fff; --table-hover:#f5f5fa; --bar-bg:#e0e0ec;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        /* Prevent iOS auto-zoom on input focus */
+        input, select, textarea { font-size: 16px; }
         body { background: var(--bg); font-family: Arial, sans-serif; color: var(--text); min-height: 100vh; opacity: 0; transition: background 0.3s, color 0.3s; }
 
         /* NAV */

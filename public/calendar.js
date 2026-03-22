@@ -8,7 +8,11 @@ let allApplications = [];
 
 // ── Page fade-in + navigation fade-out ───────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-    anime({ targets: 'body', opacity: [0, 1], duration: 400, easing: 'easeOutQuad' });
+    document.body.style.opacity = '1';
+    if (typeof anime !== 'undefined') {
+        document.body.style.opacity = '0';
+        anime({ targets: 'body', opacity: [0, 1], duration: 400, easing: 'easeOutQuad' });
+    }
 
     document.querySelectorAll('a[href]').forEach(a => {
         const href = a.getAttribute('href');
