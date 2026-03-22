@@ -99,6 +99,10 @@ app.get('/calendar', (_req, res) => {
     res.sendFile(__dirname + '/public/calendar.html');
 });
 
+app.get('/quick-save', (_req, res) => {
+    res.sendFile(__dirname + '/public/quick-save.html');
+});
+
 app.use(express.static('public', { index: false }));
 
 const PORT = process.env.PORT || 4000;
