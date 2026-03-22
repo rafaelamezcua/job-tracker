@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Save to Nymbus</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0d0d0d;
+            color: #e8e8e8;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .card {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 14px;
+            padding: 24px;
+            width: 100%;
+            max-width: 400px;
+        }
+        .logo { font-size: 15px; font-weight: 700; color: #e8e8e8; margin-bottom: 16px; letter-spacing: -0.3px; }
+        .logo span { color: #7f77dd; }
+        h2 { font-size: 16px; font-weight: 600; margin-bottom: 18px; color: #fff; }
+        label { display: block; font-size: 11px; color: #888; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+        input, select, textarea {
+            width: 100%;
+            background: #111;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            color: #e8e8e8;
+            font-size: 13px;
+            padding: 9px 12px;
+            margin-bottom: 12px;
+            outline: none;
+            font-family: inherit;
+        }
+        input:focus, select:focus, textarea:focus { border-color: #7f77dd; }
+        select option { background: #1a1a1a; }
+        .btn-save {
+            width: 100%;
+            background: #7f77dd;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 11px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 4px;
+        }
+        .btn-save:hover { background: #6d66c8; }
+        .btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
+        .status { margin-top: 12px; font-size: 13px; text-align: center; min-height: 20px; }
+        .status.success { color: #5aad6a; }
+        .status.error { color: #c46a6a; }
+        .not-logged-in { text-align: center; }
+        .not-logged-in p { color: #888; font-size: 13px; margin-bottom: 14px; }
+        .btn-login {
+            display: inline-block;
+            background: #7f77dd;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 8px;
+            padding: 10px 22px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .url-preview {
+            font-size: 11px;
+            color: #555;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 14px;
+            margin-top: -8px;
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <div class="logo">Nym<span>bus</span></div>
+
+    <div id="notLoggedIn" class="not-logged-in" style="display:none;">
+        <p>You need to be logged in to save applications.</p>
+        <a href="https://nymbus.pro/login" target="_blank" class="btn-login">Log in to Nymbus →</a>
+    </div>
+
+    <div id="saveForm" style="display:none;">
+        <h2>Save this job</h2>
+        <div class="url-preview" id="urlPreview"></div>
+
+        <label>Company</label>
+        <input type="text" id="qs-company" placeholder="Company name" />
+
+        <label>Role</label>
+        <input type="text" id="qs-role" placeholder="Job title" />
+
+        <label>Status</label>
+        <select id="qs-status">
+            <option>Saved</option>
+            <option>Applied</option>
+            <option>Interview</option>
+            <option>Offer</option>
+            <option>Rejected</option>
+            <option>Withdrawn</option>
+        </select>
+
+        <label>Date</label>
+        <input type="date" id="qs-date" />
+
+        <button class="btn-save" id="qs-btn" onclick="saveJob()">Save to Nymbus</button>
+        <div class="status" id="qs-status-msg"></div>
+    </div>
+</div>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const jobUrl = params.get('url') || '';
+    const jobTitle = params.get('title') || '';
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+        document.getElementById('notLoggedIn').style.display = 'block';
+    } else {
+        document.getElementById('saveForm').style.display = 'block';
+        document.getElementById('urlPreview').textContent = decodeURIComponent(jobUrl);
+
+        // Set today's date
+        document.getElementById('qs-date').value = new Date().toISOString().split('T')[0];
+
+        // Try to parse company and role from page title
+        // Common patterns: "Role at Company | Site", "Role - Company | Site", "Role | Company"
+        const title = decodeURIComponent(jobTitle).replace(/\s*[\|—]\s*(LinkedIn|Indeed|Glassdoor|ZipRecruiter|Monster|Handshake|Greenhouse|Lever|Workday|Careers).*$/i, '').trim();
+        const atMatch = title.match(/^(.+?)\s+at\s+(.+)$/i);
+        const dashMatch = title.match(/^(.+?)\s*[-–—]\s*(.+)$/);
+        const pipeMatch = title.match(/^(.+?)\s*\|\s*(.+)$/);
+
+        if (atMatch) {
+            document.getElementById('qs-role').value = atMatch[1].trim();
+            document.getElementById('qs-company').value = atMatch[2].trim();
+        } else if (dashMatch) {
+            document.getElementById('qs-role').value = dashMatch[1].trim();
+            document.getElementById('qs-company').value = dashMatch[2].trim();
+        } else if (pipeMatch) {
+            document.getElementById('qs-role').value = pipeMatch[1].trim();
+            document.getElementById('qs-company').value = pipeMatch[2].trim();
+        } else {
+            document.getElementById('qs-role').value = title;
+        }
+    }
+
+    async function saveJob() {
+        const company = document.getElementById('qs-company').value.trim();
+        const role = document.getElementById('qs-role').value.trim();
+        const status = document.getElementById('qs-status').value;
+        const date = document.getElementById('qs-date').value;
+        const btn = document.getElementById('qs-btn');
+        const msg = document.getElementById('qs-status-msg');
+
+        if (!company || !role || !date) {
+            msg.textContent = 'Please fill in company, role, and date.';
+            msg.className = 'status error';
+            return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+
+        try {
+            const res = await fetch('https://nymbus.pro/applications', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'authorization': token },
+                body: JSON.stringify({ company, role, status, date, url: decodeURIComponent(jobUrl) })
+            });
+
+            if (res.ok) {
+                msg.textContent = '✓ Saved! You can close this window.';
+                msg.className = 'status success';
+                btn.textContent = 'Saved ✓';
+                setTimeout(() => window.close(), 1500);
+            } else if (res.status === 401) {
+                msg.textContent = 'Session expired — please log in again.';
+                msg.className = 'status error';
+                btn.disabled = false;
+                btn.textContent = 'Save to Nymbus';
+            } else {
+                throw new Error();
+            }
+        } catch {
+            msg.textContent = 'Something went wrong. Try again.';
+            msg.className = 'status error';
+            btn.disabled = false;
+            btn.textContent = 'Save to Nymbus';
+        }
+    }
+</script>
+</body>
+</html>

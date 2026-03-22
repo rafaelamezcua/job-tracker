@@ -285,6 +285,12 @@
         <div class="changelog-list">
             <div class="changelog-item" style="--dot:#7f77dd;">
                 <div class="changelog-date">Mar 2026</div>
+                <span class="changelog-tag tag-new">New</span>
+                <div class="changelog-title">One-click job saving from any site</div>
+                <div class="changelog-desc">Save any job posting to Nymbus without leaving the page. Works on LinkedIn, Indeed, Glassdoor, and everywhere else. <a href="#" onclick="document.getElementById('bookmarkletModal').style.display='flex';return false;" style="color:#7f77dd;text-decoration:none;font-weight:600;">How it works →</a></div>
+            </div>
+            <div class="changelog-item" style="--dot:#7f77dd;">
+                <div class="changelog-date">Mar 2026</div>
                 <span class="changelog-tag tag-update">Update</span>
                 <div class="changelog-title">Animations & motion</div>
                 <div class="changelog-desc">The entire app now comes alive — rows stagger in, stats count up, the weekly goal bar animates, modals fade and scale in, tag chips pop in, filter pills bounce on click, the calendar slides between months, and pages fade in and out on navigation.</div>
@@ -354,6 +360,42 @@
         <h2>Ready to get organized?</h2>
         <p>Join Nymbus and never lose track of an application again.</p>
         <a href="/login" class="btn-primary">Create your free account</a>
+    </div>
+
+    <!-- Bookmarklet how-it-works modal -->
+    <div id="bookmarkletModal" style="display:none;position:fixed;inset:0;background:#000a;z-index:9999;align-items:center;justify-content:center;padding:20px;">
+        <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:16px;max-width:480px;width:100%;padding:32px;position:relative;">
+            <button onclick="document.getElementById('bookmarkletModal').style.display='none'" style="position:absolute;top:14px;right:16px;background:none;border:none;color:#666;font-size:20px;cursor:pointer;">✕</button>
+            <div style="font-size:13px;color:#7f77dd;font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">New Feature</div>
+            <h3 style="font-size:20px;font-weight:700;color:#fff;margin-bottom:10px;">One-click job saving</h3>
+            <p style="font-size:14px;color:#aaa;margin-bottom:24px;line-height:1.6;">Save any job posting to Nymbus in seconds — without switching tabs or copying and pasting anything.</p>
+
+            <div style="display:flex;flex-direction:column;gap:16px;margin-bottom:28px;">
+                <div style="display:flex;gap:14px;align-items:flex-start;">
+                    <div style="background:#7f77dd22;border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#7f77dd;flex-shrink:0;">1</div>
+                    <div>
+                        <div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:3px;">Log in and go to your dashboard</div>
+                        <div style="font-size:13px;color:#888;">Make sure your bookmarks bar is visible (Ctrl+Shift+B on Chrome).</div>
+                    </div>
+                </div>
+                <div style="display:flex;gap:14px;align-items:flex-start;">
+                    <div style="background:#7f77dd22;border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#7f77dd;flex-shrink:0;">2</div>
+                    <div>
+                        <div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:3px;">Drag the "⚡ Save to Nymbus" button to your bookmarks bar</div>
+                        <div style="font-size:13px;color:#888;">You'll find it next to the Table / Kanban toggle on your dashboard. Drag it once and you're set forever.</div>
+                    </div>
+                </div>
+                <div style="display:flex;gap:14px;align-items:flex-start;">
+                    <div style="background:#7f77dd22;border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#7f77dd;flex-shrink:0;">3</div>
+                    <div>
+                        <div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:3px;">Visit any job posting and click the bookmark</div>
+                        <div style="font-size:13px;color:#888;">A small popup opens with the company, role, and URL already filled in. Hit Save and it goes straight to your Nymbus dashboard.</div>
+                    </div>
+                </div>
+            </div>
+
+            <a href="/login" style="display:block;text-align:center;background:#7f77dd;color:#fff;text-decoration:none;border-radius:10px;padding:12px;font-weight:600;font-size:14px;">Get started — it's free</a>
+        </div>
     </div>
 
     <footer>
