@@ -184,9 +184,7 @@
                 msg.textContent = '✓ Saved! You can close this window.';
                 msg.className = 'status success';
                 btn.textContent = 'Saved ✓';
-                if ('BroadcastChannel' in window) {
-                    new BroadcastChannel('nymbus-saved').postMessage('saved');
-                }
+                localStorage.setItem('nymbus-last-saved', Date.now());
                 setTimeout(() => window.close(), 1500);
             } else if (res.status === 401) {
                 msg.textContent = 'Session expired — please log in again.';
