@@ -1,4 +1,4 @@
-const CACHE = 'nymbus-v1';
+const CACHE = 'nymbus-v3';
 const OFFLINE_ASSETS = ['/', '/dashboard', '/login', '/app.js', '/calendar.js'];
 
 self.addEventListener('install', e => {
@@ -16,10 +16,14 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-    // Only cache GET requests for same-origin HTML/JS/CSS — never API calls
     const url = new URL(e.request.url);
+
+    // Only handle http/https — ignore chrome-extension and other schemes
+    if (!url.protocol.startsWith('http')) return;
+
+    // Never intercept API calls
     if (e.request.method !== 'GET') return;
-    if (url.pathname.startsWith('/applications') || url.pathname.startsWith('/login') && e.request.method === 'POST') return;
+    if (url.pathname.startsWith('/applications')) return;
 
     e.respondWith(
         fetch(e.request)
